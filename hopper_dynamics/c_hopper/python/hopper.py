@@ -31,6 +31,23 @@ xc_stance = 0
 # apex, flight, touchdown, stance, takeoff
 fsm = 'apex'
 
+x0_all_rk4 = []
+x1_all_rk4 = []
+lx0_all_rk4 = []
+lx1_all_rk4 = []
+dx0_all_rk4 = []
+dx1_all_rk4 = []
+
+t_all = []
+
+theta = 10
+
+jump_i = 0
+x_rk4 = xstart
+
+event_thres = 1e-2
+t = 0
+
 def f_flight(x):
     return np.array([
         x[2], 
@@ -50,24 +67,6 @@ def f_stance(x):
         k * (l - l_now) * (x[0] - xc_stance) / l_now / m, 
         k * (l - l_now) * x[1] / l_now / m - g
         ])
-
-x0_all_rk4 = []
-x1_all_rk4 = []
-lx0_all_rk4 = []
-lx1_all_rk4 = []
-dx0_all_rk4 = []
-dx1_all_rk4 = []
-
-t_all = []
-
-theta = 10
-
-jump_i = 0
-x_rk4 = xstart
-
-event_thres = 1e-2
-
-t = 0
 
 while True:
     if fsm == 'apex':
