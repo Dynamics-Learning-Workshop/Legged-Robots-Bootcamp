@@ -12,7 +12,7 @@ Based on
     - stand
     - walk
     - gallop
-- Simulation platform devloped by UniTree Gazebo.
+- Simulation platform developed by UniTree Gazebo.
   - my implementation is based in Gazebo
 
 ```
