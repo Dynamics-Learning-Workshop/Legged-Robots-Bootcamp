@@ -76,7 +76,7 @@ class Integrator:
         ax.plot(
             [
                 min(np.min(x_states[0]), np.min(x_states[2])), 
-                max(np.max(x_states[0]), np.min(x_states[2]))
+                max(np.max(x_states[0]), np.max(x_states[2]))
             ], [ground, ground], color='black', linewidth=2)
         self.sim_object = sim_object
         

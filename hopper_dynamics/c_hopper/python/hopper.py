@@ -23,7 +23,7 @@ x0 = 0
 x1 = 1.2
 dx0 = 1.0
 dx1 = 0
-no_of_jump = 5 
+no_of_jump = 10
 # cannot set too high, as the current fsm switching condition is ideal
 
 xstart = np.array([x0, x1, dx0, dx1])
