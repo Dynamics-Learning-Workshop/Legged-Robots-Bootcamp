@@ -4,7 +4,7 @@ import sys
 import os
 
 # Add the path to the upper two-level folder to the system path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
 
 from dynamics import Integrator
 
