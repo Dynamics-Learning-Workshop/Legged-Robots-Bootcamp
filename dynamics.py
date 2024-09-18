@@ -2,6 +2,43 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import numpy as np
 
+class RobotUtils:
+    def __init__(self):
+    
+        pass
+    
+    def rot2D(self, psi):
+        return np.array(
+            [[np.cos(psi), -np.sin(psi)], [np.sin(psi), np.cos(psi)]]
+        )
+        
+    def homo2D(self, psi, trans):
+        homo2D_mat = np.zeros((3, 3))
+        homo2D_mat[:2, :2] = self.rot2D(psi)
+        homo2D_mat[2, :2] = trans
+    
+    def rot3D(self, phi, theta, psi):
+        R_x = np.array([
+            [1, 0, 0],
+            [0, np.cos(phi), -np.sin(phi)],
+            [0, np.sin(phi), np.cos(phi)]
+        ])
+    
+        R_y = np.array([
+            [np.cos(theta), 0, np.sin(theta)],
+            [0, 1, 0],
+            [-np.sin(theta), 0, np.cos(theta)]
+        ])
+    
+        R_z = np.array([
+            [np.cos(psi), -np.sin(psi), 0],
+            [np.sin(psi), np.cos(psi), 0],
+            [0, 0, 1]
+        ])
+    
+        return np.dot(R_z, np.dot(R_y, R_x))
+    
+
 class Integrator:
     def __init__(self):
         

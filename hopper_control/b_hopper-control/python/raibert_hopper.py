@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from integrator import Integrator
+from dynamics import Integrator
 
 # basic parameters for a hopper
 c = 0.02
