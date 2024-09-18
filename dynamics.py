@@ -15,7 +15,10 @@ class RobotUtils:
     def homo2D(self, psi, trans):
         homo2D_mat = np.zeros((3, 3))
         homo2D_mat[:2, :2] = self.rot2D(psi)
-        homo2D_mat[2, :2] = trans
+        homo2D_mat[0:2, 2] = trans
+        homo2D_mat[2, 0:3] = np.array([0,0,1])
+        
+        return homo2D_mat
     
     def rot3D(self, phi, theta, psi):
         R_x = np.array([
