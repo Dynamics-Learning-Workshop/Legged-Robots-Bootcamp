@@ -17,7 +17,7 @@ l = 1
 # integration environs
 t_step = 1/1000
 ground = 0
-no_of_jump = 10 # cannot set too high, as the current fsm switching condition is ideal
+no_of_jump = 14 
 
 # initial state of x0, x1, dx0, dx1
 x0 = 0
@@ -114,13 +114,15 @@ while True:
         print(jump_i)
         print(fsm)
         if jump_i < 1:
-            dx0_desired = 1.0
+            dx0_desired = -1.0
         elif jump_i >= 1 and jump_i < 4:
-            dx0_desired = 2.0
+            dx0_desired = -2.0
         elif jump_i >= 4 and jump_i < 6:
-            dx0_desired = 0.5
-        elif jump_i < 10:
-            dx0_desired = 3.6
+            dx0_desired = -0.5
+        elif jump_i >= 6 and jump_i < 10:
+            dx0_desired = 0.0
+        else:
+            dx0_desired = -0.5
 
         theta = np.arcsin( x_rk4[2] * np.pi / 2 / l * np.sqrt(m/k)) + Kp * (x_rk4[2] - dx0_desired)
         theta = theta / np.pi * 180
@@ -199,7 +201,10 @@ while True:
             x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
             x1_all_rk4.append(x_new_rk4[1])
-            lx0_all_rk4.append(x_new_rk4[0] - l * np.sin(theta / 180 * np.pi))
+            if x_new_rk4[3] > 0:
+                lx0_all_rk4.append(x_new_rk4[0] - l * np.sin(theta / 180 * np.pi))
+            else:
+                lx0_all_rk4.append(x_new_rk4[0] + l * np.sin(theta / 180 * np.pi))
             lx1_all_rk4.append(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
             # print("LALA")
             # print(theta / np.pi * 180)
