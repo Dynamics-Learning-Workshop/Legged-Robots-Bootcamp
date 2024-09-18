@@ -23,8 +23,7 @@ x0 = 0
 x1 = 1.2
 dx0 = 1.0
 dx1 = 0
-no_of_jump = 5 
-# cannot set too high, as the current fsm switching condition is ideal
+no_jump = 5 # cannot set too high, as the current fsm switching condition is ideal
 
 xstart = np.array([x0, x1, dx0, dx1])
 xc_stance = 0
@@ -49,8 +48,6 @@ x_rk4 = xstart
 event_thres = 1e-2
 t = 0
 
-sample_factor = 10
-
 def f_flight(x):
     return np.array([
         x[2], 
@@ -71,43 +68,13 @@ def f_stance(x):
         k * (l - l_now) * x[1] / l_now / m - g
         ])
 
-def check_sys(x1_body,x1_leg):
-    if (x1_body - ground) < -10 * event_thres or (x1_leg - ground) < -10 * event_thres:
-        print('SYSTEM FAILED...')
-        draw_anime(False)
-
-def draw_anime(success):
-    if success:
-        save_name = "hopper_" + str(no_of_jump)
-    else:
-        save_name = "hopper_" + str(no_of_jump) + "_failed"
-    Integrator().anime(
-        t=t_all[::10], 
-        x_states=[
-            x0_all_rk4[::sample_factor], 
-            x1_all_rk4[::sample_factor], 
-            lx0_all_rk4[::sample_factor], 
-            lx1_all_rk4[::sample_factor]
-        ], 
-        ground=ground, 
-        ms=1000 * t_step * sample_factor,
-        mission="Hop", 
-        sim_object="hopper",
-        save=True,
-        save_name=save_name
-    )
-    exit()
-
 while True:
     if fsm == 'apex':
-        print()
-        print(jump_i)
-        print(fsm)
         fsm = 'flight_down'
         jump_i = jump_i + 1
         
     elif fsm == 'flight_down':
-        print(fsm)
+        
         while True:
             x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
@@ -120,7 +87,6 @@ while True:
             t = t + t_step
             t_all.append(t)
             
-            check_sys(x_new_rk4[1], x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
             x_rk4 = x_new_rk4
             
             if np.abs(x_rk4[1] - l * np.cos(theta / 180 *np.pi)) < event_thres:
@@ -131,7 +97,6 @@ while True:
                 break 
         
     elif fsm == 'stance':
-        print(fsm)
         while True:
             x_new_rk4 = Integrator().rk4(f_stance, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
@@ -144,7 +109,6 @@ while True:
             t = t + t_step
             t_all.append(t)
             
-            check_sys(x_new_rk4[1],0)
             x_rk4 = x_new_rk4
             
             if np.abs(
@@ -158,20 +122,19 @@ while True:
                 break         
         
     elif fsm == 'flight_up':
-        print(fsm)
+        
         while True:
             x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
             x1_all_rk4.append(x_new_rk4[1])
-            lx0_all_rk4.append(x_new_rk4[0] + l * np.sin(theta / 180 * np.pi))
-            lx1_all_rk4.append(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
+            lx0_all_rk4.append(x_new_rk4[0] + l * np.sin(theta / np.pi))
+            lx1_all_rk4.append(x_new_rk4[1] + l * np.cos(theta / np.pi))
             dx0_all_rk4.append(x_new_rk4[2])
             dx1_all_rk4.append(x_new_rk4[3])
             
             t = t + t_step
             t_all.append(t)
             
-            check_sys(x_new_rk4[1], x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
             x_rk4 = x_new_rk4
             
             if np.abs(x_rk4[3] - 0) < event_thres:
@@ -180,11 +143,26 @@ while True:
                 break 
             
     # print('end once')
-    if jump_i == no_of_jump:
+    if jump_i == no_jump:
         break
     
-print('SYSTEM INTEGRATION SUCCEEDED...')
-draw_anime(True)
+print('integration end')
+sample_factor = 10
 
+Integrator().anime(
+    t=t_all[::10], 
+    x_states=[
+        x0_all_rk4[::sample_factor], 
+        x1_all_rk4[::sample_factor], 
+        lx0_all_rk4[::sample_factor], 
+        lx1_all_rk4[::sample_factor]
+    ], 
+    ground=ground, 
+    ms=1000 * t_step * sample_factor,
+    mission="Hop Control", 
+    sim_object="hopper",
+    save=True,
+    save_name='raibert_hopper'
+)
 
 exit()
