@@ -6,6 +6,7 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from integrator import Integrator
 
+# basic parameters for a hopper
 c = 0.02
 m = 100
 g = 9.81
@@ -13,21 +14,25 @@ e = 0.9
 k = 10000
 l = 1
 
-t_start = 0
-t_end = 4
+# integration environs
 t_step = 1/1000
-
 ground = 0
+no_of_jump = 10 # cannot set too high, as the current fsm switching condition is ideal
 
+# initial state of x0, x1, dx0, dx1
 x0 = 0
 x1 = 1.2
 dx0 = 1.0
 dx1 = 0
-no_of_jump = 5 
-# cannot set too high, as the current fsm switching condition is ideal
 
 xstart = np.array([x0, x1, dx0, dx1])
 xc_stance = 0
+
+# Raibert Controller
+T = np.pi * np.sqrt(m / k)
+Kp = 0.1
+dx0_desired_s = [0.0,0.5,1.0,2.0]
+dx0_desired = 2.0
 
 # apex, flight, touchdown, stance, takeoff
 fsm = 'apex'
@@ -72,15 +77,21 @@ def f_stance(x):
         ])
 
 def check_sys(x1_body,x1_leg):
+    
+    
     if (x1_body - ground) < -10 * event_thres or (x1_leg - ground) < -10 * event_thres:
         print('SYSTEM FAILED...')
+        print()
+        print(fsm)
+        print(x1_body - ground)
+        print(x1_leg - ground)
         draw_anime(False)
 
 def draw_anime(success):
     if success:
-        save_name = "hopper_" + str(no_of_jump)
+        save_name = "raibert_hopper_" + str(no_of_jump)
     else:
-        save_name = "hopper_" + str(no_of_jump) + "_failed"
+        save_name = "raibert_hopper_" + str(no_of_jump) + "_failed"
     Integrator().anime(
         t=t_all[::10], 
         x_states=[
@@ -100,9 +111,19 @@ def draw_anime(success):
 
 while True:
     if fsm == 'apex':
-        print()
         print(jump_i)
         print(fsm)
+        if jump_i < 1:
+            dx0_desired = 1.0
+        elif jump_i >= 1 and jump_i < 4:
+            dx0_desired = 2.0
+        elif jump_i >= 4 and jump_i < 6:
+            dx0_desired = 0.5
+        elif jump_i < 10:
+            dx0_desired = 3.6
+
+        theta = np.arcsin( x_rk4[2] * np.pi / 2 / l * np.sqrt(m/k)) + Kp * (x_rk4[2] - dx0_desired)
+        theta = theta / np.pi * 180
         fsm = 'flight_down'
         jump_i = jump_i + 1
         
@@ -116,6 +137,8 @@ while True:
             lx1_all_rk4.append(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
             dx0_all_rk4.append(x_new_rk4[2])
             dx1_all_rk4.append(x_new_rk4[3])
+            
+            # print(theta)
             
             t = t + t_step
             t_all.append(t)
@@ -152,6 +175,19 @@ while True:
                     (x_rk4[0] - xc_stance) ** 2 + x_rk4[1] ** 2
                     )  - l
                 ) < event_thres and x_rk4[3] > 0:
+                # print()
+                # print("HERE!!!")
+                # print(x_rk4)
+                # print(theta / np.pi * 180)
+                # print(np.abs(x_rk4[0] - xc_stance))
+                # print((x_rk4[1] - ground))
+                # print(np.tan())
+                theta = np.arctan(np.abs(x_rk4[0] - xc_stance) / np.abs(x_rk4[1] - ground))
+                # print(theta)
+                theta = theta / np.pi * 180
+                # print(theta)
+                # print()
+                # print(theta / np.pi * 180)
                 #  @ takeoff
                 fsm = 'flight_up'
                 
@@ -163,8 +199,11 @@ while True:
             x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
             x1_all_rk4.append(x_new_rk4[1])
-            lx0_all_rk4.append(x_new_rk4[0] + l * np.sin(theta / 180 * np.pi))
+            lx0_all_rk4.append(x_new_rk4[0] - l * np.sin(theta / 180 * np.pi))
             lx1_all_rk4.append(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
+            # print("LALA")
+            # print(theta / np.pi * 180)
+            # print(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
             dx0_all_rk4.append(x_new_rk4[2])
             dx1_all_rk4.append(x_new_rk4[3])
             

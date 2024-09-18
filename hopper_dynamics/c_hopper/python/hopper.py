@@ -13,8 +13,6 @@ e = 0.9
 k = 10000
 l = 1
 
-t_start = 0
-t_end = 4
 t_step = 1/1000
 
 ground = 0
