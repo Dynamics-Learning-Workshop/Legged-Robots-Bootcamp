@@ -17,12 +17,12 @@ l = 1
 # integration environs
 t_step = 1/1000
 ground = 0
-no_of_jump = 14 
+no_of_jump = 200
 
 # initial state of x0, x1, dx0, dx1
 x0 = 0
 x1 = 1.2
-dx0 = 1.0
+dx0 = 0.0
 dx1 = 0
 
 xstart = np.array([x0, x1, dx0, dx1])
@@ -33,6 +33,8 @@ T = np.pi * np.sqrt(m / k)
 Kp = 0.1
 dx0_desired_s = [0.0,0.5,1.0,2.0]
 dx0_desired = 2.0
+
+x0_desired = 6.0
 
 # apex, flight, touchdown, stance, takeoff
 fsm = 'apex'
@@ -77,12 +79,11 @@ def f_stance(x):
         ])
 
 def check_sys(x1_body,x1_leg):
-    
-    
     if (x1_body - ground) < -10 * event_thres or (x1_leg - ground) < -10 * event_thres:
+        print(fsm)
         print('SYSTEM FAILED...')
         print()
-        print(fsm)
+        
         print(x1_body - ground)
         print(x1_leg - ground)
         draw_anime(False)
@@ -104,7 +105,7 @@ def draw_anime(success):
         ms=1000 * t_step * sample_factor,
         mission="Hop", 
         sim_object="hopper",
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
@@ -112,25 +113,17 @@ def draw_anime(success):
 while True:
     if fsm == 'apex':
         print(jump_i)
-        print(fsm)
-        if jump_i < 1:
-            dx0_desired = -1.0
-        elif jump_i >= 1 and jump_i < 4:
-            dx0_desired = -2.0
-        elif jump_i >= 4 and jump_i < 6:
-            dx0_desired = -0.5
-        elif jump_i >= 6 and jump_i < 10:
-            dx0_desired = 0.0
-        else:
-            dx0_desired = -0.5
-
+        dx0_desired = 2.0 * (x0_desired - x_rk4[0])
+        if np.abs(dx0_desired) > 2.0:
+            dx0_desired = dx0_desired / np.abs(dx0_desired) * 1.5
+        print(dx0_desired)
         theta = np.arcsin( x_rk4[2] * np.pi / 2 / l * np.sqrt(m/k)) + Kp * (x_rk4[2] - dx0_desired)
         theta = theta / np.pi * 180
         fsm = 'flight_down'
         jump_i = jump_i + 1
         
     elif fsm == 'flight_down':
-        print(fsm)
+        
         while True:
             x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
@@ -156,7 +149,7 @@ while True:
                 break 
         
     elif fsm == 'stance':
-        print(fsm)
+        
         while True:
             x_new_rk4 = Integrator().rk4(f_stance, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
@@ -196,7 +189,7 @@ while True:
                 break         
         
     elif fsm == 'flight_up':
-        print(fsm)
+        
         while True:
             x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])
@@ -224,7 +217,7 @@ while True:
                 break 
             
     # print('end once')
-    if jump_i == no_of_jump:
+    if jump_i == no_of_jump or np.abs(x_rk4[0] - x0_desired) < 10 * event_thres:
         break
     
 print('SYSTEM INTEGRATION SUCCEEDED...')

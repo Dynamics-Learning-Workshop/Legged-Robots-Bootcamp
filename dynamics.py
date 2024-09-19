@@ -77,6 +77,7 @@ class Integrator:
         save_name='obj_sim'
         ):
         fig, ax = plt.subplots()
+        # ax.size
         
         if sim_object == 'ball':
             self.x_states = x_states
