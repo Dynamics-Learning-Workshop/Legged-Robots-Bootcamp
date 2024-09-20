@@ -87,6 +87,8 @@ Integrator().anime(
     save_name='bounce'
 )
 
+exit()
+
 # Create a new figure with specified size
 plt.figure(figsize=(8, 10))  # Adjust size to accommodate both subplots
 

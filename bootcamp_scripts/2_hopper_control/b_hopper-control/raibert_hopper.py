@@ -94,7 +94,7 @@ def draw_anime(success):
     else:
         save_name = "raibert_hopper_" + str(no_of_jump) + "_failed"
     Integrator().anime(
-        t=t_all[::10], 
+        t=t_all[::sample_factor], 
         x_states=[
             x0_all_rk4[::sample_factor], 
             x1_all_rk4[::sample_factor], 

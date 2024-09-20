@@ -15,34 +15,49 @@ leg_c = 0.5 # m, CoM of the leg
 g = 1.0 # gravity
 slope_angle = 0.01
 
-# integration environs
-t_step = 1/1000
-ground = 0
-
+# initial states in ground plane {G}
 # initial state of q = [q0, q1, u0, u1, x0, x1]
 # which are {q0, q1} = {theta_leg0, theta_leg1}
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
+q0_initial = 0.2
+q1_initial = -0.4
+u0_initial = -0.25
+u1_initial = 0.2
+x0_initial = -4.0
+x1_initial = 0.0
+x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial, x0_initial, x1_initial])
 
-# fsm: single_stance, foot_strike
-fsm = 'apex'
+t = 0
 
+# fsm -> single_stance, foot_strike
+fsm = 'single_stance'
+
+# states after all integration
 q0_all_rk4 = []
 q1_all_rk4 = []
 x0_all_rk4 = []
 x1_all_rk4 = []
+dx0_all_rk4 = []
+dx1_all_rk4 = []
 
 t_all = []
 
-theta = 10
-
-jump_i = 0
-x_rk4 = xstart
-
+# integration environs
+t_step = 1/1000
+ground = 0
+no_of_walk = 4
+walk_i = 0
 event_thres = 1e-2
-t = 0
-
 sample_factor = 10
+
+def test():
+    q0_all_rk4.append(x_rk4[0])
+    q1_all_rk4.append(x_rk4[1])
+    x0_all_rk4.append(x_rk4[2])
+    x1_all_rk4.append(x_rk4[3])
+    
+    draw_anime(False)
 
 def f_single_stance(x):
     return np.array([
@@ -53,16 +68,14 @@ def f_single_stance(x):
         ])
 
 def f_foot_strike(x):
-    l_now = np.sqrt(
-                (x_rk4[0] - xc_stance) ** 2 + x_rk4[1] ** 2
-            )
+    pass
             
-    return np.array([
-        x[2], 
-        x[3], 
-        k * (l - l_now) * (x[0] - xc_stance) / l_now / m, 
-        k * (l - l_now) * x[1] / l_now / m - g
-        ])
+    # return np.array([
+    #     x[2], 
+    #     x[3], 
+    #     k * (l - l_now) * (x[0] - xc_stance) / l_now / m, 
+    #     k * (l - l_now) * x[1] / l_now / m - g
+    #     ])
 
 def check_sys(x1_body,x1_leg):
     if (x1_body - ground) < -10 * event_thres or (x1_leg - ground) < -10 * event_thres:
@@ -74,139 +87,75 @@ def check_sys(x1_body,x1_leg):
         print(x1_leg - ground)
         draw_anime(False)
 
+print(
+    np.dot(
+        np.array([[1,0],[0,1]]), 
+        np.zeros((2,1))
+        )
+    )
+exit()
 def draw_anime(success):
     if success:
-        save_name = "passive_walker_" + str(no_of_jump)
+        print('SYSTEM INTEGRATION SUCCEEDED...')
+        save_name = "passive_walker_"
     else:
-        save_name = "passive_walker_" + str(no_of_jump) + "_failed"
+        print('SYSTEM INTEGRATION FAILED...')
+        save_name = "passive_walker_" + "_failed"
     
     Integrator().anime(
-        t=t_all[::10], 
+        t=t_all[::sample_factor], 
         x_states=[
+            q0_all_rk4[::sample_factor], 
+            q1_all_rk4[::sample_factor], 
             x0_all_rk4[::sample_factor], 
-            x1_all_rk4[::sample_factor], 
-            lx0_all_rk4[::sample_factor], 
-            lx1_all_rk4[::sample_factor]
+            x1_all_rk4[::sample_factor]
         ], 
-        ground=ground, 
+        ground=ground,
         ms=1000 * t_step * sample_factor,
-        mission="Hop", 
-        sim_object="hopper",
+        mission="Walk", 
+        sim_object="walker",
+        walker_info={'slope_angle':slope_angle, 'leg_l':leg_l},
         save=False,
         save_name=save_name
     )
     exit()
 
 while True:
-    if fsm == 'apex':
-        print(jump_i)
-        dx0_desired = 2.0 * (x0_desired - x_rk4[0])
-        if np.abs(dx0_desired) > 2.0:
-            dx0_desired = dx0_desired / np.abs(dx0_desired) * 1.5
-        print(dx0_desired)
-        theta = np.arcsin( x_rk4[2] * np.pi / 2 / l * np.sqrt(m/k)) + Kp * (x_rk4[2] - dx0_desired)
-        theta = theta / np.pi * 180
-        fsm = 'flight_down'
-        jump_i = jump_i + 1
-        
-    elif fsm == 'flight_down':
+    if fsm == 'single_stance':
+        # integrate throughout single stance
         while True:
-            x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
-            x0_all_rk4.append(x_new_rk4[0])
-            x1_all_rk4.append(x_new_rk4[1])
-            lx0_all_rk4.append(x_new_rk4[0] + l * np.sin(theta / 180 * np.pi))
-            lx1_all_rk4.append(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
-            dx0_all_rk4.append(x_new_rk4[2])
-            dx1_all_rk4.append(x_new_rk4[3])
-            
-            # print(theta)
+            x_new_rk4 = Integrator().rk4(f_single_stance, x=x_rk4, h=t_step)
+            q0_all_rk4.append(x_new_rk4[0])
+            q1_all_rk4.append(x_new_rk4[1])
+            x0_all_rk4.append(x_new_rk4[2])
+            x1_all_rk4.append(x_new_rk4[3])
+            dx0_all_rk4.append(x_new_rk4[4])
+            dx1_all_rk4.append(x_new_rk4[5])
             
             t = t + t_step
             t_all.append(t)
             
-            check_sys(x_new_rk4[1], x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
-            x_rk4 = x_new_rk4
-            
-            if np.abs(x_rk4[1] - l * np.cos(theta / 180 *np.pi)) < event_thres:
-                #  @ touchdown
-                xc_stance = x_rk4[0] + l * np.sin(theta / 180 *np.pi)
-                fsm = 'stance'
-                
-                break 
+            if t >= 20.0:
+                draw_anime(False)
         
-    elif fsm == 'stance':
-        
+    elif fsm == 'foot_strike':
+        # bounce state
         while True:
-            x_new_rk4 = Integrator().rk4(f_stance, x=x_rk4, h=t_step)
-            x0_all_rk4.append(x_new_rk4[0])
-            x1_all_rk4.append(x_new_rk4[1])
-            lx0_all_rk4.append(xc_stance)
-            lx1_all_rk4.append(0)
-            dx0_all_rk4.append(x_new_rk4[2])
-            dx1_all_rk4.append(x_new_rk4[3])
+            x_new_rk4 = Integrator().rk4(f_foot_strike, x=x_rk4, h=t_step)
+            q0_all_rk4.append(x_new_rk4[0])
+            q1_all_rk4.append(x_new_rk4[1])
+            x0_all_rk4.append(x_new_rk4[2])
+            x1_all_rk4.append(x_new_rk4[3])
+            dx0_all_rk4.append(x_new_rk4[4])
+            dx1_all_rk4.append(x_new_rk4[5])
             
             t = t + t_step
             t_all.append(t)
             
-            check_sys(x_new_rk4[1],0)
-            x_rk4 = x_new_rk4
+            if t >= 20.0:
+                draw_anime(False)
             
-            if np.abs(
-                np.sqrt(
-                    (x_rk4[0] - xc_stance) ** 2 + x_rk4[1] ** 2
-                    )  - l
-                ) < event_thres and x_rk4[3] > 0:
-                # print()
-                # print("HERE!!!")
-                # print(x_rk4)
-                # print(theta / np.pi * 180)
-                # print(np.abs(x_rk4[0] - xc_stance))
-                # print((x_rk4[1] - ground))
-                # print(np.tan())
-                theta = np.arctan(np.abs(x_rk4[0] - xc_stance) / np.abs(x_rk4[1] - ground))
-                # print(theta)
-                theta = theta / np.pi * 180
-                # print(theta)
-                # print()
-                # print(theta / np.pi * 180)
-                #  @ takeoff
-                fsm = 'flight_up'
-                
-                break         
-        
-    elif fsm == 'flight_up':
-        
-        while True:
-            x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
-            x0_all_rk4.append(x_new_rk4[0])
-            x1_all_rk4.append(x_new_rk4[1])
-            if x_new_rk4[3] > 0:
-                lx0_all_rk4.append(x_new_rk4[0] - l * np.sin(theta / 180 * np.pi))
-            else:
-                lx0_all_rk4.append(x_new_rk4[0] + l * np.sin(theta / 180 * np.pi))
-            lx1_all_rk4.append(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
-            # print("LALA")
-            # print(theta / np.pi * 180)
-            # print(x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
-            dx0_all_rk4.append(x_new_rk4[2])
-            dx1_all_rk4.append(x_new_rk4[3])
-            
-            t = t + t_step
-            t_all.append(t)
-            
-            check_sys(x_new_rk4[1], x_new_rk4[1] - l * np.cos(theta / 180 * np.pi))
-            x_rk4 = x_new_rk4
-            
-            if np.abs(x_rk4[3] - 0) < event_thres:
-                #  @ apex
-                fsm = 'apex'
-                break 
-            
-    # print('end once')
-    if jump_i == no_of_jump or np.abs(x_rk4[0] - x0_desired) < 10 * event_thres:
+    if walk_i == no_of_walk:
         break
     
-print('SYSTEM INTEGRATION SUCCEEDED...')
 draw_anime(True)
-
-exit()

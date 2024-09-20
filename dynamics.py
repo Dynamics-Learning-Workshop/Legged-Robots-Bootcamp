@@ -40,6 +40,11 @@ class RobotUtils:
     
         return np.dot(R_z, np.dot(R_y, R_x))
     
+    def dg2rad(angle):
+        return angle / 180 * np.pi
+    
+    def rad2dg(angle):
+        return angle / np.pi * 180
 
 class Integrator(RobotUtils):
     def __init__(self):
@@ -47,6 +52,11 @@ class Integrator(RobotUtils):
         self.ball = plt.Circle((0, 0), 0.2, color='red', fill=True)
         self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.leg = None
+        
+        self.leg0 = None
+        self.leg1 = None
+        self.foot0 = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
 
         self.x_states = []
         
@@ -69,10 +79,11 @@ class Integrator(RobotUtils):
         self, 
         t, 
         x_states, 
-        ground=0, 
+        ground=0,
         ms = 10,
         mission='lala', 
         sim_object='ball', 
+        walker_info={}, 
         save=False, 
         save_name='obj_sim'
         ):
@@ -106,13 +117,15 @@ class Integrator(RobotUtils):
             
             ax.add_patch(self.ball)
             ax.add_patch(self.foot_circle)
+            
         elif sim_object == 'walker':
-            initial_state = x_states
+            initial_state = [x_states[0][0], x_states[1][0], x_states[2][0], x_states[3][0]]
             # leg0_theta x_states[0]
             # leg1_theta x_states[1]
-            # leg_x x_states[2]
-            # leg_g x_states[3]
-            pass
+            # leg_xc x_states[2]
+            # leg_yc x_states[3]
+            self.ball = plt.Circle((x_states[0][0], x_states[1][0]), 0.1, color='red', fill=True)
+        
         else:
             print("GOT ERROR CHOOSING OBJECT")
             exit()
@@ -148,6 +161,39 @@ class Integrator(RobotUtils):
             self.foot_circle.center = (self.x_states[2][frame], self.x_states[3][frame])
 
             return (self.ball, self.leg, self.foot_circle,)
+        elif self.sim_object == 'walker':
+            
+            pass
         else:
             exit()
+            
+    def draw_walker(self, x, walker_info):
+        # draw the walker in inertial frame {I}
+        # q = [q0, q1, x0, x1] (in ground frame {G})
+        H_G_2_I = self.homo2D(
+            psi=walker_info['slope_angle'], 
+            trans=np.zeros(2,1)
+        )
+        H_B1_2_G = self.homo2D(
+            psi=np.pi/2+x[0], 
+            trans=np.array([x[2],0])
+        )
+        H_B2_2_B1 = self.homo2D(
+            psi=np.pi + x[1], 
+            trans=np.array([walker_info['leg_l'],0])
+        )
+        
+        # foot on ground in {I}
+        foot_on_ground = np.dot(H_G_2_I, np.array([x[2], 0, 1]))
+        
+        # hip in {I}
+        hip_G = np.dot(H_B1_2_G, np.array([walker_info['leg_l'], 0, 1]))
+        hip = np.dot(H_G_2_I, hip_G)
+        
+        # foot in air in {I}
+        foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([walker_info['leg_l'], 0, 1]))
+        foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
+        foot_in_air = np.dot(H_G_2_I, foot_in_air_G)
+        
+        return foot_on_ground[0:2], hip[0:2], foot_in_air[0:2]
         
