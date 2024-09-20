@@ -88,7 +88,7 @@ def check_sys(x1_body,x1_leg):
         print(x1_leg - ground)
         draw_anime(False)
 
-def draw_anime(success):
+def draw_anime(success, save_or_not=True):
     if success:
         save_name = "raibert_hopper_" + str(no_of_jump)
     else:
@@ -105,7 +105,7 @@ def draw_anime(success):
         ms=1000 * t_step * sample_factor,
         mission="Hop", 
         sim_object="hopper",
-        save=False,
+        save=save_or_not,
         save_name=save_name
     )
     exit()
@@ -114,8 +114,8 @@ while True:
     if fsm == 'apex':
         print(jump_i)
         dx0_desired = 2.0 * (x0_desired - x_rk4[0])
-        if np.abs(dx0_desired) > 2.0:
-            dx0_desired = dx0_desired / np.abs(dx0_desired) * 1.5
+        if np.abs(dx0_desired) > 1.0:
+            dx0_desired = dx0_desired / np.abs(dx0_desired) * 1.0
         print(dx0_desired)
         theta = np.arcsin( x_rk4[2] * np.pi / 2 / l * np.sqrt(m/k)) + Kp * (x_rk4[2] - dx0_desired)
         theta = theta / np.pi * 180
@@ -217,7 +217,7 @@ while True:
                 break 
             
     # print('end once')
-    if jump_i == no_of_jump or np.abs(x_rk4[0] - x0_desired) < 10 * event_thres:
+    if jump_i == no_of_jump or np.abs(x_rk4[0] - x0_desired) < 1 * event_thres:
         break
     
 print('SYSTEM INTEGRATION SUCCEEDED...')
