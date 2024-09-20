@@ -19,32 +19,18 @@ slope_angle = 0.01
 t_step = 1/1000
 ground = 0
 
-# initial state of x0, x1, dx0, dx1
-x0 = 0
-x1 = 1.2
-dx0 = 0.0
-dx1 = 0
+# initial state of q = [q0, q1, u0, u1, x0, x1]
+# which are {q0, q1} = {theta_leg0, theta_leg1}
+# which are {u0, u1} = {omega_leg0, omega_leg1}
+# which are {x0, x1} = {xc_leg0, xc_leg1}
 
-xstart = np.array([x0, x1, dx0, dx1])
-xc_stance = 0
-
-# Raibert Controller
-T = np.pi * np.sqrt(m / k)
-Kp = 0.1
-dx0_desired_s = [0.0,0.5,1.0,2.0]
-dx0_desired = 2.0
-
-x0_desired = 6.0
-
-# apex, flight, touchdown, stance, takeoff
+# fsm: single_stance, foot_strike
 fsm = 'apex'
 
+q0_all_rk4 = []
+q1_all_rk4 = []
 x0_all_rk4 = []
 x1_all_rk4 = []
-lx0_all_rk4 = []
-lx1_all_rk4 = []
-dx0_all_rk4 = []
-dx1_all_rk4 = []
 
 t_all = []
 
@@ -58,7 +44,7 @@ t = 0
 
 sample_factor = 10
 
-def f_flight(x):
+def f_single_stance(x):
     return np.array([
         x[2], 
         x[3], 
@@ -66,7 +52,7 @@ def f_flight(x):
         - g
         ])
 
-def f_stance(x):
+def f_foot_strike(x):
     l_now = np.sqrt(
                 (x_rk4[0] - xc_stance) ** 2 + x_rk4[1] ** 2
             )
@@ -90,9 +76,10 @@ def check_sys(x1_body,x1_leg):
 
 def draw_anime(success):
     if success:
-        save_name = "raibert_hopper_" + str(no_of_jump)
+        save_name = "passive_walker_" + str(no_of_jump)
     else:
-        save_name = "raibert_hopper_" + str(no_of_jump) + "_failed"
+        save_name = "passive_walker_" + str(no_of_jump) + "_failed"
+    
     Integrator().anime(
         t=t_all[::10], 
         x_states=[
@@ -123,7 +110,6 @@ while True:
         jump_i = jump_i + 1
         
     elif fsm == 'flight_down':
-        
         while True:
             x_new_rk4 = Integrator().rk4(f_flight, x=x_rk4, h=t_step)
             x0_all_rk4.append(x_new_rk4[0])

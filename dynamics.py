@@ -4,7 +4,6 @@ import numpy as np
 
 class RobotUtils:
     def __init__(self):
-    
         pass
     
     def rot2D(self, psi):
@@ -42,9 +41,9 @@ class RobotUtils:
         return np.dot(R_z, np.dot(R_y, R_x))
     
 
-class Integrator:
+class Integrator(RobotUtils):
     def __init__(self):
-        
+        super().__init__()
         self.ball = plt.Circle((0, 0), 0.2, color='red', fill=True)
         self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.leg = None
@@ -53,11 +52,12 @@ class Integrator:
         
         self.sim_object = 'ball'
         self.sim_object = 'hopper'
+        self.sim_object = 'walker'
     
     def rk4(self, func, x, h):
         k1 = func(x) * h
         k2 = func(x + k1 / 2) * h
-        k3 = func(x + k2 / 2) * h  # Correcting k3 to divide by 2
+        k3 = func(x + k2 / 2) * h  
         k4 = func(x + k3) * h
         
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
@@ -77,7 +77,6 @@ class Integrator:
         save_name='obj_sim'
         ):
         fig, ax = plt.subplots()
-        # ax.size
         
         if sim_object == 'ball':
             self.x_states = x_states
@@ -107,7 +106,13 @@ class Integrator:
             
             ax.add_patch(self.ball)
             ax.add_patch(self.foot_circle)
-            
+        elif sim_object == 'walker':
+            initial_state = x_states
+            # leg0_theta x_states[0]
+            # leg1_theta x_states[1]
+            # leg_x x_states[2]
+            # leg_g x_states[3]
+            pass
         else:
             print("GOT ERROR CHOOSING OBJECT")
             exit()
