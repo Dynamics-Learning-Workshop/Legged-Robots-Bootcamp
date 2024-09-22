@@ -114,7 +114,7 @@ def draw_anime(success):
         ms=1000 * t_step * sample_factor,
         mission="Walk", 
         sim_object="walker",
-        walker_info={'slope_angle':slope_angle, 'leg_l':leg_l},
+        sim_info={'slope_angle':slope_angle, 'leg_l':leg_l},
         save=False,
         save_name=save_name
     )

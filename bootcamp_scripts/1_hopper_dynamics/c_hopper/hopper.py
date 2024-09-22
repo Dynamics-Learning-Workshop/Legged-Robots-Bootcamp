@@ -87,11 +87,11 @@ def draw_anime(success):
             lx0_all_rk4[::sample_factor], 
             lx1_all_rk4[::sample_factor]
         ], 
-        ground=ground, 
         ms=1000 * t_step * sample_factor,
         mission="Hop", 
         sim_object="hopper",
-        save=True,
+        sim_info={'ground':ground},
+        save=False,
         save_name=save_name
     )
     exit()

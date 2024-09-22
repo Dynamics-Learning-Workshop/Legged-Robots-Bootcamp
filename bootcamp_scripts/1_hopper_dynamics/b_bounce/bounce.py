@@ -79,11 +79,11 @@ for t_ in t:
 Integrator().anime(
     t=t, 
     x_states=[x0_all_rk4, x1_all_rk4], 
-    ground=ground, 
     ms=1000 * t_step,
     mission="Bounce", 
     sim_object="ball",
-    save=True,
+    sim_info={'ground':ground},
+    save=False,
     save_name='bounce'
 )
 

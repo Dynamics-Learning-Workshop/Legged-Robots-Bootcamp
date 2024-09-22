@@ -63,6 +63,10 @@ class Integrator(RobotUtils):
         self.sim_object = 'ball'
         self.sim_object = 'hopper'
         self.sim_object = 'walker'
+        self.sim_info = {'ground':0, 'slope_angle':0, 'leg_l':0}
+        
+        self.fig = None
+        self.ax = None
     
     def rk4(self, func, x, h):
         k1 = func(x) * h
@@ -75,34 +79,33 @@ class Integrator(RobotUtils):
     def euler_forward(self, func, x, h):
         return x + h * func(x)
         
-    def anime(
-        self, 
-        t, 
-        x_states, 
-        ground=0,
-        ms = 10,
-        mission='lala', 
-        sim_object='ball', 
-        walker_info={}, 
-        save=False, 
-        save_name='obj_sim'
-        ):
-        fig, ax = plt.subplots()
-        
-        if sim_object == 'ball':
-            self.x_states = x_states
+    def anime_init(self):
+        self.fig, self.ax = plt.subplots()
+    
+        if self.sim_object == 'ball':
+            # draw ball
+            self.ball = plt.Circle((self.x_states[0][0], self.x_states[1][0]), 0.2, color='red', fill=True)
+            self.ax.add_patch(self.ball)
             
-            self.ball = plt.Circle((x_states[0][0], x_states[1][0]), 0.2, color='red', fill=True)
-            ax.add_patch(self.ball)
+            # draw ground
+            self.ax.plot(
+                [
+                    min(self.x_states[0]) - 2.0, max(self.x_states[0]) + 2.0 
+                ], 
+                [
+                    self.sim_info['ground'], 
+                    self.sim_info['ground']
+                ], 
+                color='black', linewidth=2
+            )
             
-        elif sim_object == 'hopper':
-            self.x_states = x_states
-            
-            self.ball = plt.Circle((x_states[0][0], x_states[1][0]), 0.1, color='red', fill=True)
+        elif self.sim_object == 'hopper':
+            # draw hopper
+            self.ball = plt.Circle((self.x_states[0][0], self.x_states[1][0]), 0.1, color='red', fill=True)
 
-            self.leg, = ax.plot(
-                [x_states[0][0], x_states[2][0]], 
-                [x_states[1][0], x_states[3][0]], 
+            self.leg, = self.ax.plot(
+                [self.x_states[0][0], self.x_states[2][0]], 
+                [self.x_states[1][0], self.x_states[3][0]], 
                 color='blue', 
                 linewidth=3)
             # body_x x_states[0]
@@ -111,35 +114,81 @@ class Integrator(RobotUtils):
             # leg_g x_states[3]
             
             self.foot_circle = plt.Circle(
-                (x_states[2][0], x_states[3][0]), 
+                (self.x_states[2][0], self.x_states[3][0]), 
                 0.05, color='green', fill=True
             )
             
-            ax.add_patch(self.ball)
-            ax.add_patch(self.foot_circle)
+            self.ax.add_patch(self.ball)
+            self.ax.add_patch(self.foot_circle)
             
-        elif sim_object == 'walker':
-            initial_state = [x_states[0][0], x_states[1][0], x_states[2][0], x_states[3][0]]
+            # draw ground
+            self.ax.plot(
+                [
+                    min(np.min(self.x_states[0]), np.min(self.x_states[2])) - 2, 
+                    max(np.max(self.x_states[0]), np.max(self.x_states[2])) + 2
+                ], [self.sim_info['ground'], self.sim_info['ground']], color='black', linewidth=2)
+            
+        elif self.sim_object == 'walker':
+            initial_state = [
+                self.x_states[0][0], 
+                self.x_states[1][0], 
+                self.x_states[2][0], 
+                self.x_states[3][0]
+            ]
             # leg0_theta x_states[0]
             # leg1_theta x_states[1]
             # leg_xc x_states[2]
-            # leg_yc x_states[3]
-            self.ball = plt.Circle((x_states[0][0], x_states[1][0]), 0.1, color='red', fill=True)
-        
+            # leg_yc x_states[3] in {G}
+            
+            # transform from {G} to {I}
+            foot_on_ground, hip, foot_in_air = self.draw_walker(x=initial_state, sim_info=self.sim_info)
+            
+            # draw walker
+            self.ball = plt.Circle((hip[0], hip[1]), 0.1, color='red', fill=True)
+            self.foot0 = plt.Circle((foot_on_ground[0], foot_on_ground[1]), 0.05, color='green', fill=True)
+            self.foot1 = plt.Circle((foot_in_air[0], foot_in_air[1]), 0.05, color='green', fill=True)
+            
+            # draw ground (slope)
+            min_x = np.min(self.x_states[0]) - 2
+            max_x = np.max(self.x_states[0]) + 2
+            
+            H_G_2_I = self.homo2D(
+                psi=self.sim_info['slope_angle'], 
+                trans=np.zeros(2,1)
+            )
+            min_xy_I = np.dot(H_G_2_I, np.array([min_x, self.sim_info['ground']]))
+            max_xy_I = np.dot(H_G_2_I, np.array([max_x, self.sim_info['ground']]))
+            
+            self.ax.plot(
+                [min_xy_I[0] - 2, max_xy_I[2] + 2], 
+                [min_xy_I[1], max_xy_I[2]], 
+                color='black', linewidth=2
+            )
         else:
             print("GOT ERROR CHOOSING OBJECT")
             exit()
+            
+        self.ax.set_aspect('equal')
+            
+    def anime(
+        self, 
+        t, 
+        x_states, 
+        ms = 10,
+        mission='lala', 
+        sim_object='ball', 
+        sim_info={}, 
+        save=False, 
+        save_name='obj_sim'
+        ):
         
-        ax.set_aspect('equal')
-        
-        ax.plot(
-            [
-                min(np.min(x_states[0]), np.min(x_states[2])), 
-                max(np.max(x_states[0]), np.max(x_states[2]))
-            ], [ground, ground], color='black', linewidth=2)
         self.sim_object = sim_object
-        
-        ani = FuncAnimation(fig, self.update, frames=len(t), interval=ms, blit=True)
+        self.x_states = x_states
+        self.sim_info = sim_info
+        self.anime_init()    
+            
+    
+        ani = FuncAnimation(self.fig, self.update, frames=len(t), interval=ms, blit=True)
         if save:
             ani.save('./viz/'+ save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
             
@@ -167,11 +216,11 @@ class Integrator(RobotUtils):
         else:
             exit()
             
-    def draw_walker(self, x, walker_info):
+    def draw_walker(self, x, sim_info):
         # draw the walker in inertial frame {I}
         # q = [q0, q1, x0, x1] (in ground frame {G})
         H_G_2_I = self.homo2D(
-            psi=walker_info['slope_angle'], 
+            psi=sim_info['slope_angle'], 
             trans=np.zeros(2,1)
         )
         H_B1_2_G = self.homo2D(
@@ -180,18 +229,18 @@ class Integrator(RobotUtils):
         )
         H_B2_2_B1 = self.homo2D(
             psi=np.pi + x[1], 
-            trans=np.array([walker_info['leg_l'],0])
+            trans=np.array([sim_info['leg_l'],0])
         )
         
         # foot on ground in {I}
         foot_on_ground = np.dot(H_G_2_I, np.array([x[2], 0, 1]))
         
         # hip in {I}
-        hip_G = np.dot(H_B1_2_G, np.array([walker_info['leg_l'], 0, 1]))
+        hip_G = np.dot(H_B1_2_G, np.array([sim_info['leg_l'], 0, 1]))
         hip = np.dot(H_G_2_I, hip_G)
         
         # foot in air in {I}
-        foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([walker_info['leg_l'], 0, 1]))
+        foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([sim_info['leg_l'], 0, 1]))
         foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
         foot_in_air = np.dot(H_G_2_I, foot_in_air_G)
         
