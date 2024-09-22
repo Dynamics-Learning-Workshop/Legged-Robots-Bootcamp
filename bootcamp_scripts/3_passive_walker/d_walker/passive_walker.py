@@ -13,6 +13,7 @@ leg_I = 0.02 # kg x m^2, moment of inertia of hip
 leg_l = 1.0 # kg x m^2, length of 
 leg_c = 0.5 # m, CoM of the leg
 g = 1.0 # gravity
+slope_angle = 20/180 * np.pi
 slope_angle = 0.01
 
 # initial states in ground plane {G}
@@ -20,7 +21,7 @@ slope_angle = 0.01
 # which are {q0, q1} = {theta_leg0, theta_leg1}
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
-q0_initial = 0.2
+q0_initial = -0.2
 q1_initial = -0.4
 u0_initial = -0.25
 u1_initial = 0.2
@@ -54,8 +55,8 @@ sample_factor = 10
 def test():
     q0_all_rk4.append(x_rk4[0])
     q1_all_rk4.append(x_rk4[1])
-    x0_all_rk4.append(x_rk4[2])
-    x1_all_rk4.append(x_rk4[3])
+    x0_all_rk4.append(x_rk4[4])
+    x1_all_rk4.append(x_rk4[5])
     
     draw_anime(False)
 
@@ -87,13 +88,6 @@ def check_sys(x1_body,x1_leg):
         print(x1_leg - ground)
         draw_anime(False)
 
-print(
-    np.dot(
-        np.array([[1,0],[0,1]]), 
-        np.zeros((2,1))
-        )
-    )
-exit()
 def draw_anime(success):
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
@@ -110,16 +104,17 @@ def draw_anime(success):
             x0_all_rk4[::sample_factor], 
             x1_all_rk4[::sample_factor]
         ], 
-        ground=ground,
         ms=1000 * t_step * sample_factor,
         mission="Walk", 
         sim_object="walker",
-        sim_info={'slope_angle':slope_angle, 'leg_l':leg_l},
+        sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
         save=False,
         save_name=save_name
     )
     exit()
-
+    
+test()
+exit()
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
