@@ -59,7 +59,7 @@ class Integrator(RobotUtils):
         self.hand2 = None
         self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
-
+        
         self.x_states = []
         
         self.sim_object = 'ball'
@@ -193,7 +193,46 @@ class Integrator(RobotUtils):
                 [min_xy_I[1], max_xy_I[1]], 
                 color='black', linewidth=2
             )
+        
+        elif self.sim_object == 'double_pendulum':
+            initial_state = [
+                self.x_states[0][0], 
+                self.x_states[1][0]
+            ]
+            fixation, hinge, end_effector = self.draw_double_pendulum(x=initial_state)
             
+            # draw points
+            self.foot1 = plt.Circle((fixation[0], fixation[1]), 0.05, color='green', fill=True)
+            self.foot2 = plt.Circle((hinge[0], hinge[1]), 0.05, color='green', fill=True)
+            self.ball = plt.Circle((end_effector[0], end_effector[1]), 0.05, color='green', fill=True)
+            self.ax.add_patch(self.foot1)
+            self.ax.add_patch(self.foot2)
+            self.ax.add_patch(self.ball)
+            
+            # draw arms
+            self.leg1, = self.ax.plot(
+                [fixation[0], hinge[0]], 
+                [fixation[1], hinge[1]], 
+                color='cyan', 
+                linewidth=4)
+            self.leg2, = self.ax.plot(
+                [hinge[0], end_effector[0]], 
+                [hinge[1], end_effector[1]], 
+                color='pink', 
+                linewidth=4)
+            
+            # draw plane cross
+            self.ax.plot(
+                [-2, 2], 
+                [0, 0], 
+                color='black', linewidth=2
+            )
+            self.ax.plot(
+                [0, 0], 
+                [-2, 2], 
+                color='black', linewidth=2
+            )
+        
         else:
             print("GOT ERROR CHOOSING OBJECT")
             exit()
@@ -283,7 +322,25 @@ class Integrator(RobotUtils):
             self.foot2.center = (foot_in_air[0], foot_in_air[1])
             
             return (self.ball, self.foot1, self.foot2, self.leg1, self.leg2, self.hand1, self.hand2)
-                        
+                    
+        elif self.sim_object == 'double_pendulum':
+            current_state = [
+                self.x_states[0][frame], 
+                self.x_states[1][frame]
+            ]
+            fixation, hinge, end_effector = self.draw_double_pendulum(x=current_state)
+            self.foot1.center = (fixation[0], fixation[1])
+            self.foot2.center = (hinge[0], hinge[1])
+            self.ball.center = (end_effector[0], end_effector[1])
+            self.leg1.set_data(
+                    [fixation[0], hinge[0]], 
+                    [fixation[1], hinge[1]]                    
+                )
+            self.leg2.set_data(
+                    [hinge[0], end_effector[0]], 
+                    [hinge[1], end_effector[1]]                    
+                )
+            return (self.foot1, self.foot2, self.ball, self.leg1, self.leg2)
         else:
             exit()
             
@@ -316,4 +373,28 @@ class Integrator(RobotUtils):
         foot_in_air = H_G_2_I @ foot_in_air_G
         
         return foot_on_ground[0:2], hip[0:2], foot_in_air[0:2]
+    
+    def draw_double_pendulum(self, x):
+        # draw the double pendulum in inertial frame {I}
+        # q = [q0, q1] (in inertial frame {I})
+        H_B1_2_I = self.homo2D(
+            psi=np.pi/2+x[0], 
+            trans=np.array([0,0])
+        )
+        H_B2_2_B1 = self.homo2D(
+            psi=np.pi + x[1], 
+            trans=np.array([self.sim_info['l1'],0])
+        )
+        
+        # foot on ground in {I}
+        fixation = np.array([0,0])
+        
+        # hip in {I}
+        hinge = H_B1_2_I @ np.array([self.sim_info['l1'], 0, 1])
+        
+        # foot in air in {I}
+        end_effector_B1 = H_B2_2_B1 @ np.array([self.sim_info['l2'], 0, 1])
+        end_effector = H_B1_2_I @ end_effector_B1
+        
+        return fixation, hinge[0:2], end_effector[0:2]
         
