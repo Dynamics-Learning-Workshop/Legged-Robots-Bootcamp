@@ -101,6 +101,16 @@ class Integrator(RobotUtils):
                 color='black', linewidth=2
             )
             
+            self.ax.plot(
+                [
+                    min(self.x_states[0]) - 2.0, min(self.x_states[0]) - 2.0 
+                ], 
+                [
+                    min(self.x_states[1]) - 2.0, max(self.x_states[1]) + 2.0 
+                ], 
+                color='black', linewidth=2
+            )
+            
         elif self.sim_object == 'hopper':
             # draw hopper
             self.ball = plt.Circle((self.x_states[0][0], self.x_states[1][0]), 0.1, color='red', fill=True)

@@ -20,7 +20,7 @@ e = 0.9
 
 t_start = 0
 t_end = 10
-t_step = 1/100
+t_step = 1/1000
 
 ground = 0
 
@@ -51,6 +51,8 @@ dx1_all_rk4 = []
 
 event_thres = 1e-3
 
+sample_factor = 10
+
 x_euler = xstart
 x_rk4 = xstart
 for t_ in t:
@@ -77,13 +79,13 @@ for t_ in t:
 
 
 Integrator().anime(
-    t=t, 
-    x_states=[x0_all_rk4, x1_all_rk4], 
-    ms=1000 * t_step,
+    t=t[::sample_factor], 
+    x_states=[x0_all_rk4[::sample_factor], x1_all_rk4[::sample_factor]], 
+    ms=1000 * t_step * sample_factor,
     mission="Bounce", 
     sim_object="ball",
     sim_info={'ground':ground},
-    save=False,
+    save=True,
     save_name='bounce'
 )
 

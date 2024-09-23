@@ -12,17 +12,20 @@ from dynamics import Integrator
 x0 = 0
 x1 = 0
 dx0 = 100
-dx1 = 0
+dx1 = 100
 
 xstart = np.array([x0, x1, dx0, dx1])
 
-c = 0.5  
+c = 0.1
 m = 1
 g = 9.81
+ground = 0
 
 t_start = 0
 t_end = 5
 t_step = 0.001
+
+sample_factor = 10
 
 # x = [x0, x1, dx0, dx1]
 # dx = f(x) = [dx0, dx1, ddx0, ddx1]
@@ -68,7 +71,19 @@ for t_ in t:
     
     x_euler = x_new_euler
     x_rk4 = x_new_rk4
+    
+Integrator().anime(
+    t=t[::sample_factor], 
+    x_states=[x0_all_rk4[::sample_factor], x1_all_rk4[::sample_factor]], 
+    ms=1000 * t_step * sample_factor,
+    mission="Projectile", 
+    sim_object="ball",
+    sim_info={'ground':ground},
+    save=True,
+    save_name='bounce'
+)
 
+exit()
 # Create a new figure with specified size
 plt.figure(figsize=(8, 10))  # Adjust size to accommodate both subplots
 
