@@ -24,9 +24,9 @@ t_step = 1e-3
 t_all = []
 
 q0_initial=0.1
-q1_initial=0.1
-u0_initial=-0.1
-u1_initial=-0.1
+q1_initial=0.0
+u0_initial=-0.0
+u1_initial=-0.0
 x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
 
 def draw_anime(success):
@@ -47,7 +47,7 @@ def draw_anime(success):
         mission="Swing", 
         sim_object="double_pendulum",
         sim_info={'l1': l1, 'l2': l2},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
