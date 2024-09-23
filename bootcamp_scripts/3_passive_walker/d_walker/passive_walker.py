@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from dynamics import Integrator
+from dynamics import Integrator as inte, RobotUtils as util
 
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
@@ -12,7 +12,6 @@ leg_I = 0.02 # kg x m^2, moment of inertia of hip
 leg_l = 1.0 # kg x m^2, length of 
 leg_c = 0.5 # m, CoM of the leg
 g = 1.0 # gravity
-slope_angle = 20/180 * np.pi
 slope_angle = 0.01
 
 # initial states in ground plane {G}
@@ -21,14 +20,21 @@ slope_angle = 0.01
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
 q0_initial = 0.2
+q0_initial = 0.162597833780041
 q1_initial = -0.4
+q1_initial =  -0.325195667560083
+
 u0_initial = -0.25
+u0_initial = -0.231869638058930
 u1_initial = 0.2
-x0_initial = -4.0
+u1_initial = 0.037978468073743
+
+x0_initial = 0.0
 x1_initial = 0.0
 x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
+print(x_rk4)
 x_current_stance = [x0_initial, x1_initial]
-
+foot_on_ground_now = 1
 t = 0
 
 # fsm -> single_stance, foot_strike
@@ -39,19 +45,20 @@ q0_all_rk4 = []
 q1_all_rk4 = []
 x0_all_rk4 = []
 x1_all_rk4 = []
-foot_on_ground_all = [] # foot 1, foot 2
+foot_on_ground_now_all = [] # foot 1, foot 2
 dx0_all_rk4 = []
 dx1_all_rk4 = []
 
 t_all = []
 
 # integration environs
-t_step = 1/1000
+t_step = 1e-5
 ground = 0
 no_of_walk = 4
 walk_i = 0
 event_thres = 1e-2
-sample_factor = 10
+sample_factor = 1000
+print(1000 * t_step * sample_factor)
 
 
 def f_single_stance(x):
@@ -87,6 +94,7 @@ def f_single_stance(x):
         ])
 
 def f_foot_strike(x):
+    
     I = leg_I
     M = hip_m
     c = leg_c
@@ -128,12 +136,18 @@ def f_foot_strike(x):
     
     J_C2 = np.array([[J00, J01, J02, J03], [J10, J11, J12, J13]])
 
-    A = np.array([[M_fs, -J_C2.transpose()],[J_C2, np.zeros([2,2])]])
+    A = np.zeros((6,6))
+    A[0:4,0:4] = M_fs
+    A[0:4,4:6] = -J_C2.transpose()
+    A[4:6,0:4] = J_C2
+    # A = np.array([[M_fs, -J_C2.transpose()],[J_C2, np.zeros([2,2])]])
     
     omega0_o = x[2]
     omega1_o = x[2]
     qdot_ = np.array([0, 0, omega0_o, omega1_o])
-    b = np.array([M_fs @ qdot_,0,0])
+    b = np.zeros([6])
+    b[0:4] = M_fs @ qdot_
+    # b = np.array([M_fs @ qdot_,0,0])
     
     x_new = np.linalg.solve(A,b)
     
@@ -153,15 +167,26 @@ def f_foot_strike(x):
         omega1 
         ])
 
-def check_sys(x1_body,x1_leg):
-    if (x1_body - ground) < -10 * event_thres or (x1_leg - ground) < -10 * event_thres:
-        print(fsm)
+def check_sys(x1):
+    if x1 < - 1 * event_thres:
         print('SYSTEM FAILED...')
+        print(x1)
         print()
-        
-        print(x1_body - ground)
-        print(x1_leg - ground)
         draw_anime(False)
+
+def get_foot_in_air(x, x_current_stance):
+    H_B1_2_G = util().homo2D(
+        psi=np.pi/2+x[0], 
+        trans=np.array([x_current_stance[0],0])
+    )
+    H_B2_2_B1 = util().homo2D(
+        psi=np.pi + x[1], 
+        trans=np.array([leg_l,0])
+    )
+    foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([leg_l, 0, 1]))
+    foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
+    
+    return foot_in_air_G[0:2]
 
 def draw_anime(success):
     if success:
@@ -171,13 +196,14 @@ def draw_anime(success):
         print('SYSTEM INTEGRATION FAILED...')
         save_name = "passive_walker_" + "_failed"
     
-    Integrator().anime(
+    inte().anime(
         t=t_all[::sample_factor], 
         x_states=[
             q0_all_rk4[::sample_factor], 
             q1_all_rk4[::sample_factor], 
             x0_all_rk4[::sample_factor], 
-            x1_all_rk4[::sample_factor]
+            x1_all_rk4[::sample_factor],
+            foot_on_ground_now_all[::sample_factor]
         ], 
         ms=1000 * t_step * sample_factor,
         mission="Walk", 
@@ -192,36 +218,48 @@ while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
-            x_rk4_new = Integrator().rk4(f_single_stance, x=x_rk4, h=t_step)
-    
+            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, h=t_step)
+            
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])
             x0_all_rk4.append(x_current_stance[0])
             x1_all_rk4.append(x_current_stance[1])
+            foot_on_ground_now_all.append(foot_on_ground_now)
+            
             t = t + t_step
             t_all.append(t)
 
             x_rk4 = x_rk4_new
             
-            if t >= 4.0:
+            foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
+            
+            check_sys(foot_in_air[1])
+            # print(np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres)
+            # print(np.abs(2 * x_rk4[0]) - np.abs(x_rk4[1]) < event_thres)
+            # if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres:
+                # exit()
+            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > event_thres and np.abs(x_rk4[1]) > event_thres and x_rk4[0] < 0:
+                fsm = 'foot_strike'
+                # print("")
+                break
+            
+            if t > 10:
                 draw_anime(False)
         
     elif fsm == 'foot_strike':
         # bounce state
-        while True:
-            x_new_rk4 = Integrator().rk4(f_foot_strike, x=x_rk4, h=t_step)
-            q0_all_rk4.append(x_new_rk4[0])
-            q1_all_rk4.append(x_new_rk4[1])
-            x0_all_rk4.append(x_new_rk4[2])
-            x1_all_rk4.append(x_new_rk4[3])
-            dx0_all_rk4.append(x_new_rk4[4])
-            dx1_all_rk4.append(x_new_rk4[5])
-            
-            t = t + t_step
-            t_all.append(t)
-            
-            if t >= 20.0:
-                draw_anime(False)
+        
+        x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
+        theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
+        x_rk4 = np.array([theta0, theta1, omega0, omega1])
+        if foot_on_ground_now == 1:
+            foot_on_ground_now = 2
+        else:
+            foot_on_ground_now = 1
+        
+        fsm = 'single_stance'
+        walk_i = walk_i + 1
+        print(walk_i)
             
     if walk_i == no_of_walk:
         break

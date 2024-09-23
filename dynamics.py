@@ -38,7 +38,7 @@ class RobotUtils:
             [0, 0, 1]
         ])
     
-        return np.dot(R_z, np.dot(R_y, R_x))
+        return R_z @ R_y @ R_x
     
     def dg2rad(angle):
         return angle / 180 * np.pi
@@ -171,8 +171,8 @@ class Integrator(RobotUtils):
                 trans=np.zeros([2])
             )
             
-            min_xy_I = np.dot(H_G_2_I, np.array([min_x, self.sim_info['ground'], 1]))
-            max_xy_I = np.dot(H_G_2_I, np.array([max_x, self.sim_info['ground'], 1]))
+            min_xy_I = H_G_2_I @ np.array([min_x, self.sim_info['ground'], 1])
+            max_xy_I = H_G_2_I @ np.array([max_x, self.sim_info['ground'], 1])
             
             self.ax.plot(
                 [min_xy_I[0], max_xy_I[0]], 
@@ -235,18 +235,31 @@ class Integrator(RobotUtils):
             ]
             foot_on_ground, hip, foot_in_air = self.draw_walker(x=current_state)
             
+            if self.x_states[4][frame] == 1:
+                self.leg1.set_data(
+                    [hip[0], foot_on_ground[0]], 
+                    [hip[1], foot_on_ground[1]]
+                )
+                self.leg2.set_data(
+                    [hip[0], foot_in_air[0]], 
+                    [hip[1], foot_in_air[1]]
+                )
+            else:
+                self.leg1.set_data(
+                    [hip[0], foot_in_air[0]], 
+                    [hip[1], foot_in_air[1]]
+                )
+                self.leg2.set_data(
+                    [hip[0], foot_on_ground[0]], 
+                    [hip[1], foot_on_ground[1]]                    
+                )
+                pass
+            
             # draw walker
             self.ball.center = (hip[0], hip[1])
             self.foot1.center = (foot_on_ground[0], foot_on_ground[1])
             self.foot2.center = (foot_in_air[0], foot_in_air[1])
-            self.leg1.set_data(
-                [hip[0], foot_on_ground[0]], 
-                [hip[1], foot_on_ground[1]]
-                )
-            self.leg2.set_data(
-                [hip[0], foot_in_air[0]], 
-                [hip[1], foot_in_air[1]]
-                )
+            
             return (self.ball, self.foot1, self.foot2, self.leg1, self.leg2)
                         
         else:
@@ -269,16 +282,16 @@ class Integrator(RobotUtils):
         )
         
         # foot on ground in {I}
-        foot_on_ground = np.dot(H_G_2_I, np.array([x[2], 0, 1]))
+        foot_on_ground = H_G_2_I @ np.array([x[2], 0, 1])
         
         # hip in {I}
-        hip_G = np.dot(H_B1_2_G, np.array([self.sim_info['leg_l'], 0, 1]))
-        hip = np.dot(H_G_2_I, hip_G)
+        hip_G = H_B1_2_G @ np.array([self.sim_info['leg_l'], 0, 1])
+        hip = H_G_2_I @ hip_G
         
         # foot in air in {I}
-        foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([self.sim_info['leg_l'], 0, 1]))
-        foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
-        foot_in_air = np.dot(H_G_2_I, foot_in_air_G)
+        foot_in_air_B1 = H_B2_2_B1 @ np.array([self.sim_info['leg_l'], 0, 1])
+        foot_in_air_G = H_B1_2_G @ foot_in_air_B1
+        foot_in_air = H_G_2_I @ foot_in_air_G
         
         return foot_on_ground[0:2], hip[0:2], foot_in_air[0:2]
         
