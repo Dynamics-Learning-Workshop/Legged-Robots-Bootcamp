@@ -4,24 +4,24 @@ import sympy as sp
 M, m, I = sp.symbols('M m I', real=True)  # Mass Hip, leg, Inertia
 c, l = sp.symbols('c l', real=True)  # Distances
 gam, g = sp.symbols('gam g', real=True)  # Slope of ramp, gravity
-theta1, theta2 = sp.symbols('theta1 theta2', real=True)  # Angles
-omega1, omega2 = sp.symbols('omega1 omega2', real=True)  # Angular velocity
-alpha1, alpha2 = sp.symbols('alpha1 alpha2', real=True)  # Angular acceleration
-theta1_n, theta2_n = sp.symbols('theta1_n theta2_n', real=True)  # Angles before heelstrike
-omega1_n, omega2_n = sp.symbols('omega1_n omega2_n', real=True)  # Velocities before heelstrike
+theta0, theta1 = sp.symbols('theta0 theta1', real=True)  # Angles
+omega0, omega1 = sp.symbols('omega0 omega1', real=True)  # Angular velocity
+alpha0, alpha1 = sp.symbols('alpha0 alpha1', real=True)  # Angular acceleration
+theta0_n, theta1_n = sp.symbols('theta0_n theta1_n', real=True)  # Angles before heelstrike
+omega0_n, omega1_n = sp.symbols('omega0_n omega1_n', real=True)  # Velocities before heelstrike
 x, y = sp.symbols('x y', real=True)  # Position of the stance leg in ground frame {G}
 vx, vy = sp.symbols('vx vy', real=True)  # Velocity of the stance leg in ground frame {G}
 ax, ay = sp.symbols('ax ay', real=True)  # Acceleration of the stance leg in ground frame {G}
 
 # Generalized Coordinates in ground frame {G}
-q = [x, y, theta1, theta2]
-qdot = [vx, vy, omega1, omega2]
+q = [x, y, theta0, theta1]
+qdot = [vx, vy, omega0, omega1]
 
 # Rotation matrices
-R_B1_2_G = sp.Matrix([[sp.cos(sp.pi/2 + theta1), -sp.sin(sp.pi/2 + theta1)],
-                 [sp.sin(sp.pi/2 + theta1), sp.cos(sp.pi/2 + theta1)]])
-R_B2_2_B1 = sp.Matrix([[sp.cos(-sp.pi + theta2), -sp.sin(-sp.pi + theta2)],
-                 [sp.sin(-sp.pi + theta2), sp.cos(-sp.pi + theta2)]])
+R_B1_2_G = sp.Matrix([[sp.cos(sp.pi/2 + theta0), -sp.sin(sp.pi/2 + theta0)],
+                 [sp.sin(sp.pi/2 + theta0), sp.cos(sp.pi/2 + theta0)]])
+R_B2_2_B1 = sp.Matrix([[sp.cos(-sp.pi + theta1), -sp.sin(-sp.pi + theta1)],
+                 [sp.sin(-sp.pi + theta1), sp.cos(-sp.pi + theta1)]])
 CP_G = sp.Matrix([x, y]) # contact point in ground frame {G}
 HP_B1 = sp.Matrix([l, 0]) # hip point in body frame 1 {B1}
 
@@ -65,13 +65,13 @@ Y_G2 = R_G2[1]
 print("HEIGHT IN {I} ACQUIRED")
 
 # Kinetic and potential energy
-T = 0.5 * sp.simplify(m * (v_G1.dot(v_G1) + v_G2.dot(v_G2)) + M * v_H.dot(v_H) + I * (omega1**2 + (omega1 + omega2)**2))
+T = 0.5 * sp.simplify(m * (v_G1.dot(v_G1) + v_G2.dot(v_G2)) + M * v_H.dot(v_H) + I * (omega0**2 + (omega0 + omega1)**2))
 V = sp.simplify(m * g * Y_G1 + m * g * Y_G2 + M * g * Y_H)
 L = T - V
 print("LAGRANGIAN ACQUIRED")
 
 # Derive equations of motion
-qddot = [ax, ay, alpha1, alpha2]
+qddot = [ax, ay, alpha0, alpha1]
 EOM = []
 for i in range(4):
     dLdqdot = sp.diff(L, qdot[i])
@@ -88,17 +88,21 @@ EOM_vec = sp.simplify(sp.Matrix([EOM[i] for i in range(4)]))
 M_ss = sp.simplify(EOM_vec.jacobian(qddot))
 J_C2 = sp.simplify(sp.Matrix([x_C2, y_C2]).jacobian(q))
 
+M_ss = sp.simplify(M_ss.subs([(theta0, theta0_n), (theta1, theta1_n)]))
+J_C2 = sp.simplify(J_C2.subs([(theta0, theta0_n), (theta1, theta1_n)]))
+
 print()
+print("FOOT STRIKE")
 print("===DERIVATION ENDED===")
 print("M_ss = ", M_ss)
 print()
 for i in range(4):
     for j in range(4):
-        print("M"+str(i+1)+str(j+1)+":",M_ss[i,j])
+        print("M"+str(i)+str(j)+" =",M_ss[i,j])
 print()
 print("J_C2", J_C2)
 print()
 for i in range(2):
     for j in range(4):
-        print("J"+str(i+1)+str(j+1)+":",J_C2[i,j])
+        print("J"+str(i)+str(j)+" =",J_C2[i,j])
 print("=====================")

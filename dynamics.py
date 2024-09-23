@@ -53,10 +53,10 @@ class Integrator(RobotUtils):
         self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.leg = None
         
-        self.leg0 = None
         self.leg1 = None
-        self.foot0 = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        self.leg2 = None
         self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
 
         self.x_states = []
         
@@ -135,8 +135,8 @@ class Integrator(RobotUtils):
                 self.x_states[2][0], 
                 self.x_states[3][0]
             ]
-            # leg0_theta x_states[0]
-            # leg1_theta x_states[1]
+            # leg1_theta x_states[0]
+            # leg2_theta x_states[1]
             # leg_xc x_states[2]
             # leg_yc x_states[3] in {G}
             
@@ -145,22 +145,22 @@ class Integrator(RobotUtils):
             
             # draw walker
             self.ball = plt.Circle((hip[0], hip[1]), 0.1, color='red', fill=True)
-            self.foot0 = plt.Circle((foot_on_ground[0], foot_on_ground[1]), 0.05, color='green', fill=True)
-            self.foot1 = plt.Circle((foot_in_air[0], foot_in_air[1]), 0.05, color='green', fill=True)
-            self.leg0, = self.ax.plot(
+            self.foot1 = plt.Circle((foot_on_ground[0], foot_on_ground[1]), 0.05, color='green', fill=True)
+            self.foot2 = plt.Circle((foot_in_air[0], foot_in_air[1]), 0.05, color='green', fill=True)
+            self.leg1, = self.ax.plot(
                 [hip[0], foot_on_ground[0]], 
                 [hip[1], foot_on_ground[1]], 
                 color='cyan', 
                 linewidth=3)
-            self.leg1, = self.ax.plot(
+            self.leg2, = self.ax.plot(
                 [hip[0], foot_in_air[0]], 
                 [hip[1], foot_in_air[1]], 
                 color='pink', 
                 linewidth=3)
             
             self.ax.add_patch(self.ball)
-            self.ax.add_patch(self.foot0)
             self.ax.add_patch(self.foot1)
+            self.ax.add_patch(self.foot2)
             
             # draw ground (slope)
             min_x = np.min(self.x_states[2]) - 2
@@ -175,7 +175,7 @@ class Integrator(RobotUtils):
             max_xy_I = np.dot(H_G_2_I, np.array([max_x, self.sim_info['ground'], 1]))
             
             self.ax.plot(
-                [min_xy_I[0] - 2, max_xy_I[0] + 2], 
+                [min_xy_I[0], max_xy_I[0]], 
                 [min_xy_I[1], max_xy_I[1]], 
                 color='black', linewidth=2
             )
@@ -227,7 +227,28 @@ class Integrator(RobotUtils):
             return (self.ball, self.leg, self.foot_circle,)
         elif self.sim_object == 'walker':
             
-            pass
+            current_state = [
+                self.x_states[0][frame], 
+                self.x_states[1][frame], 
+                self.x_states[2][frame],
+                self.x_states[3][frame]
+            ]
+            foot_on_ground, hip, foot_in_air = self.draw_walker(x=current_state)
+            
+            # draw walker
+            self.ball.center = (hip[0], hip[1])
+            self.foot1.center = (foot_on_ground[0], foot_on_ground[1])
+            self.foot2.center = (foot_in_air[0], foot_in_air[1])
+            self.leg1.set_data(
+                [hip[0], foot_on_ground[0]], 
+                [hip[1], foot_on_ground[1]]
+                )
+            self.leg2.set_data(
+                [hip[0], foot_in_air[0]], 
+                [hip[1], foot_in_air[1]]
+                )
+            return (self.ball, self.foot1, self.foot2, self.leg1, self.leg2)
+                        
         else:
             exit()
             
