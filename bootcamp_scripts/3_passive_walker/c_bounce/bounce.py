@@ -85,7 +85,7 @@ Integrator().anime(
     mission="Bounce", 
     sim_object="ball",
     sim_info={'ground':ground},
-    save=True,
+    save=False,
     save_name='bounce'
 )
 
