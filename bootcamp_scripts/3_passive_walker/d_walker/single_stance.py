@@ -83,6 +83,7 @@ for i in range(4):
 print("{d/dt dL/dqdot - dL/dq} ACQUIRED")
 
 EOM_vec = sp.simplify(sp.Matrix([EOM[i] for i in range(4)]))
+# print(EOM_vec)
 # Compute the system's M_ss matrix and b_ss vector
 M_ss = EOM_vec.jacobian(qddot)
 # d/dt dL/dqdot - dL/dq = tau
@@ -100,13 +101,17 @@ b_ss = sp.simplify(EOM_vec.subs([(ax,0), (ay,0), (alpha1,0), (alpha2,0)]))
 # -> 3rd & 4th row
 M_ss_reduced = M_ss[2:, 2:]
 b_ss_reduced = b_ss[2:]
-
-# Display results for the system
+print()
+print("===DERIVATION ENDED===")
 print("M_ss = ", M_ss_reduced)
+print()
+print("M11 = ", M_ss_reduced[0,0])
+print("M12 = ", M_ss_reduced[0,1])
+print("M21 = ", M_ss_reduced[1,0])
+print("M22 = ", M_ss_reduced[1,1])
+print()
 print("b_ss = ", b_ss_reduced)
-print("alpha = M_ss\\b_ss")
-
-
-
-
-# Matrix([[1.0*M + 2.0*m, 0, -1.0*M*l*cos(theta1) + 1.0*m*(c*cos(theta1) + c*cos(theta1 + theta2) - 2*l*cos(theta1)), 1.0*c*m*cos(theta1 + theta2)], [0, 1.0*M + 2.0*m, -1.0*M*l*sin(theta1) + 1.0*m*(c*sin(theta1) + c*sin(theta1 + theta2) - 2*l*sin(theta1)), 1.0*c*m*sin(theta1 + theta2)], [-1.0*M*l*cos(theta1) + 1.0*c*m*cos(theta1) + 1.0*c*m*cos(theta1 + theta2) - 2.0*l*m*cos(theta1), -1.0*M*l*sin(theta1) + 1.0*c*m*sin(theta1) + 1.0*c*m*sin(theta1 + theta2) - 2.0*l*m*sin(theta1), 2.0*I + 1.0*M*l**2 + 2.0*c**2*m - 2.0*c*l*m*cos(theta2) - 2.0*c*l*m + 2.0*l**2*m, 1.0*I + 1.0*c**2*m - 1.0*c*l*m*cos(theta2)], [1.0*c*m*cos(theta1 + theta2), 1.0*c*m*sin(theta1 + theta2), 1.0*I + 1.0*c**2*m - 1.0*c*l*m*cos(theta2), 1.0*I + 1.0*c**2*m]])
+print()
+print("b_1 = ", b_ss_reduced[0])
+print("b_2 = ", b_ss_reduced[1])
+print("=====================")
