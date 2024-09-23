@@ -100,5 +100,5 @@ print("J_C2", J_C2)
 print()
 for i in range(2):
     for j in range(4):
-        print("M"+str(i+1)+str(j+1)+":",J_C2[i,j])
+        print("J"+str(i+1)+str(j+1)+":",J_C2[i,j])
 print("=====================")
