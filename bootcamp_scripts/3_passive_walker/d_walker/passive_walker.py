@@ -12,7 +12,7 @@ leg_I = 0.02 # kg x m^2, moment of inertia of hip
 leg_l = 1.0 # kg x m^2, length of 
 leg_c = 0.5 # m, CoM of the leg
 g = 1.0 # gravity
-slope_angle = 0.01
+slope_angle = 0.025
 
 # initial states in ground plane {G}
 # initial state of q = [q0, q1, u0, u1, x0, x1]
@@ -52,12 +52,12 @@ dx1_all_rk4 = []
 t_all = []
 
 # integration environs
-t_step = 1e-5
+t_step = 1e-3
 ground = 0
 no_of_walk = 4
 walk_i = 0
 event_thres = 1e-2
-sample_factor = 1000
+sample_factor = 10
 print(1000 * t_step * sample_factor)
 
 
@@ -209,7 +209,7 @@ def draw_anime(success):
         mission="Walk", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
@@ -248,7 +248,6 @@ while True:
         
     elif fsm == 'foot_strike':
         # bounce state
-        
         x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
         theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
         x_rk4 = np.array([theta0, theta1, omega0, omega1])

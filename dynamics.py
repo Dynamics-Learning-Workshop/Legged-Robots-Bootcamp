@@ -179,6 +179,7 @@ class Integrator(RobotUtils):
                 [min_xy_I[1], max_xy_I[1]], 
                 color='black', linewidth=2
             )
+            
         else:
             print("GOT ERROR CHOOSING OBJECT")
             exit()
