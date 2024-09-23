@@ -55,6 +55,8 @@ class Integrator(RobotUtils):
         
         self.leg1 = None
         self.leg2 = None
+        self.hand1 = None
+        self.hand2 = None
         self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
 
@@ -151,12 +153,24 @@ class Integrator(RobotUtils):
                 [hip[0], foot_on_ground[0]], 
                 [hip[1], foot_on_ground[1]], 
                 color='cyan', 
-                linewidth=3)
+                linewidth=4)
             self.leg2, = self.ax.plot(
                 [hip[0], foot_in_air[0]], 
                 [hip[1], foot_in_air[1]], 
                 color='pink', 
-                linewidth=3)
+                linewidth=4)
+            self.hand1, = self.ax.plot(
+                [hip[0], hip[0]-0.3], 
+                [hip[1], hip[1]-0.4], 
+                color='orange', 
+                linewidth=2
+            )
+            self.hand2, = self.ax.plot(
+                [hip[0], hip[0]+0.3], 
+                [hip[1], hip[1]-0.4], 
+                color='orange', 
+                linewidth=2
+            )
             
             self.ax.add_patch(self.ball)
             self.ax.add_patch(self.foot1)
@@ -254,14 +268,21 @@ class Integrator(RobotUtils):
                     [hip[0], foot_on_ground[0]], 
                     [hip[1], foot_on_ground[1]]                    
                 )
-                pass
+            self.hand1.set_data(
+                    [hip[0], hip[0]-0.3], 
+                    [hip[1], hip[1]-0.4]                    
+                )
+            self.hand2.set_data(
+                    [hip[0], hip[0]+0.3], 
+                    [hip[1], hip[1]-0.4]                    
+                )
             
             # draw walker
             self.ball.center = (hip[0], hip[1])
             self.foot1.center = (foot_on_ground[0], foot_on_ground[1])
             self.foot2.center = (foot_in_air[0], foot_in_air[1])
             
-            return (self.ball, self.foot1, self.foot2, self.leg1, self.leg2)
+            return (self.ball, self.foot1, self.foot2, self.leg1, self.leg2, self.hand1, self.hand2)
                         
         else:
             exit()
