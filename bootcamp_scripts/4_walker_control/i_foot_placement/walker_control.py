@@ -5,6 +5,10 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
 
+# controller
+# lookup, linear_poly, quadratic_poly, NN, GP
+controller = 'lookup'
+
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
 leg_m = 0.5 # kg, mass of leg
@@ -19,9 +23,9 @@ slope_angle = 0.025
 # which are {q0, q1} = {theta_leg0, theta_leg1}
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
-q0_initial = 0.2
+q0_initial = 0.0
 q0_initial = 0.162597833780041
-q1_initial = -0.4
+q1_initial = -0.0
 q1_initial =  -0.325195667560083
 
 u0_initial = -0.25
@@ -206,7 +210,7 @@ def draw_anime(success):
             foot_on_ground_now_all[::sample_factor]
         ], 
         ms=1000 * t_step * sample_factor,
-        mission="Walk", 
+        mission="Walker Control", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
         save=False,

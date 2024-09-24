@@ -53,10 +53,13 @@ class Integrator(RobotUtils):
         self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.leg = None
         
+        self.head = plt.Circle((0, 0), 0.2, color='black', fill=True)
         self.leg1 = None
         self.leg2 = None
         self.hand1 = None
         self.hand2 = None
+        self.neck = None
+
         self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
         
@@ -75,6 +78,14 @@ class Integrator(RobotUtils):
         k2 = func(x + k1 / 2) * h
         k3 = func(x + k2 / 2) * h  
         k4 = func(x + k3) * h
+        
+        return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    
+    def rk4_ctrl(self, func, x, u, h):
+        k1 = func(x,u) * h
+        k2 = func(x + k1 / 2, u) * h
+        k3 = func(x + k2 / 2, u) * h  
+        k4 = func(x + k3, u) * h
         
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
     
@@ -156,7 +167,8 @@ class Integrator(RobotUtils):
             foot_on_ground, hip, foot_in_air = self.draw_walker(x=initial_state)
             
             # draw walker
-            self.ball = plt.Circle((hip[0], hip[1]), 0.1, color='red', fill=True)
+            self.ball = plt.Circle((hip[0], hip[1]), 0.2, color='red', fill=True)
+            self.head = plt.Circle((hip[0], hip[1]+0.4), 0.12, color='black', fill=True)
             self.foot1 = plt.Circle((foot_on_ground[0], foot_on_ground[1]), 0.05, color='green', fill=True)
             self.foot2 = plt.Circle((foot_in_air[0], foot_in_air[1]), 0.05, color='green', fill=True)
             self.leg1, = self.ax.plot(
@@ -170,21 +182,32 @@ class Integrator(RobotUtils):
                 color='pink', 
                 linewidth=4)
             self.hand1, = self.ax.plot(
-                [hip[0], hip[0]-0.3], 
-                [hip[1], hip[1]-0.4], 
-                color='orange', 
-                linewidth=2
-            )
-            self.hand2, = self.ax.plot(
-                [hip[0], hip[0]+0.3], 
-                [hip[1], hip[1]-0.4], 
+                [hip[0], hip[0]-0.6], 
+                [hip[1], hip[1]+0.1], 
                 color='orange', 
                 linewidth=2
             )
             
+            self.hand2, = self.ax.plot(
+                [hip[0], hip[0]+0.6], 
+                [hip[1], hip[1]+0.1], 
+                color='orange', 
+                linewidth=2
+            )
+            
+            print(hip[0], hip[0]-0.6)
+            print(hip[1], hip[1]+0.1)
+            # exit()
+            self.neck, = self.ax.plot(
+                [hip[0], hip[0]], 
+                [hip[1], hip[1]+0.6], 
+                color='black', 
+                linewidth=4)
+            
             self.ax.add_patch(self.ball)
             self.ax.add_patch(self.foot1)
             self.ax.add_patch(self.foot2)
+            self.ax.add_patch(self.head)
             
             # draw ground (slope)
             min_x = np.min(self.x_states[2]) - 2
@@ -318,20 +341,26 @@ class Integrator(RobotUtils):
                     [hip[1], foot_on_ground[1]]                    
                 )
             self.hand1.set_data(
-                    [hip[0], hip[0]-0.3], 
-                    [hip[1], hip[1]-0.4]                    
+                    [hip[0], hip[0]-0.6], 
+                    [hip[1], hip[1]+0.1]                    
                 )
             self.hand2.set_data(
-                    [hip[0], hip[0]+0.3], 
-                    [hip[1], hip[1]-0.4]                    
+                    [hip[0], hip[0]+0.6], 
+                    [hip[1], hip[1]+0.1]                    
                 )
             
             # draw walker
             self.ball.center = (hip[0], hip[1])
+            self.head.center = (hip[0], hip[1]+0.4)
+            self.neck.set_data(
+                [hip[0], hip[0]],
+                [hip[1], hip[1]+0.4]
+            )
             self.foot1.center = (foot_on_ground[0], foot_on_ground[1])
             self.foot2.center = (foot_in_air[0], foot_in_air[1])
             
-            return (self.ball, self.foot1, self.foot2, self.leg1, self.leg2, self.hand1, self.hand2)
+            
+            return (self.ball, self.foot1, self.foot2, self.leg1, self.leg2, self.hand1, self.hand2, self.head, self.neck)
                     
         elif self.sim_object == 'double_pendulum':
             current_state = [
