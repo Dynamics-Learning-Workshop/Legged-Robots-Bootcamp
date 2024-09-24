@@ -25,7 +25,7 @@ Please refer to [this](/bootcamp_scripts/3_passive_walker/d_walker/passive_walke
 
 ### I. Foot Placement Control
 - Try the following control law
-  - A linear controller (naively tuning).
+  - :smiley: A linear controller (naively tuning).
   - A lookup table.
   - A linear polynomial regression.
   - A quadratic polynomial regression.
