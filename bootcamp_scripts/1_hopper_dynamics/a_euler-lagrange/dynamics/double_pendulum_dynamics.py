@@ -85,6 +85,7 @@ M_ss = EOM_vec.jacobian(qddot)
 # d/dt dL/dqdot - dL/dq = tau
 # M(q) q'' + B(q,q') = tau
 # use Jacobian to separate the M(q) from EOM
+# The linear dependence in EoM allows the Jacobian to extract the mass matrix
 
 b_ss = sp.simplify(EOM_vec.subs([(ax,0), (ay,0), (alpha0,0), (alpha1,0)]))
 # M(q) q'' + B(q,q') = tau
