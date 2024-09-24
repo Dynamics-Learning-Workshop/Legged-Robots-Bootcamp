@@ -242,8 +242,8 @@ def draw_anime(success):
 
 def swing_control(phi_d, x):
     current_phidot = f_single_stance(x=x,u=0)[1]
-    print(phi_d)
-    print((phi_d - x[1]))
+    # print(phi_d)
+    # print((phi_d - x[1]))
     u = Kp_phi * (phi_d - x[1]) - current_phidot
     # print(phidot_d)
     # print((phidot_d - x[3]))
@@ -308,7 +308,7 @@ while True:
         x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
         theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
         x_rk4 = np.array([theta0, theta1, omega0, omega1])
-        print(x_rk4)
+        
         if foot_on_ground_now == 1:
             foot_on_ground_now = 2
         else:
