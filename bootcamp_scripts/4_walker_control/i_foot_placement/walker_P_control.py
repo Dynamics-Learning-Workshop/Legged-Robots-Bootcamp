@@ -52,7 +52,7 @@ t_all = []
 # integration environs
 t_step = 1e-3
 ground = 0
-no_of_walk = 20
+no_of_walk = 10
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
@@ -280,16 +280,14 @@ while True:
             
             if np.abs(x_rk4[0]) < 0.1 * event_thres and (not control_set):
                 print("APEX!")
-                print(x_rk4)
-                print(q0dot_des)
                 print()
                 # phi = 0.5+0.05*(thetadot-thetadot_des);
                 phi_des = 0.25 + Kp_v * (x_rk4[2] - q0dot_des)
                 # print(x_rk4[2])
                 # print((x_rk4[2] - q0dot_des))
                 # print(Kp_phi)
-                # print("PHI_DES")
-                # print(phi_des)
+                print("PHI_DES")
+                print(phi_des)
                 # print()
                 control_set = True
             
