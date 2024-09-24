@@ -296,7 +296,7 @@ while True:
                 # print(Kp_phi)
                 print("PHI_DES")
                 print(phi_des)
-                # print()
+                
                 control_set = True
             
             # if t > 10.0:
