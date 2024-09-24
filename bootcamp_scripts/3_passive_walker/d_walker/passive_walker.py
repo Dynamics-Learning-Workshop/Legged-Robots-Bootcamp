@@ -54,7 +54,7 @@ t_all = []
 # integration environs
 t_step = 1e-3
 ground = 0
-no_of_walk = 4
+no_of_walk = 5
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
@@ -209,7 +209,7 @@ def draw_anime(success):
         mission="Walk", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
@@ -243,7 +243,7 @@ while True:
                 # print("")
                 break
             
-            if t > 10:
+            if t > 20:
                 draw_anime(False)
         
     elif fsm == 'foot_strike':
