@@ -9,11 +9,11 @@ from dynamics import Integrator as inte, RobotUtils as util
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
 leg_m = 0.5 # kg, mass of leg
-leg_I = 0.02 # kg x m^2, moment of inertia of hip
+leg_I = 0.02 # kg x m^2, moment of inertia of leg
 leg_l = 1.0 # kg x m^2, length of 
 leg_c = 0.5 # m, CoM of the leg
 g = 10.0 # gravity
-slope_angle = 0.025
+slope_angle = 0.01
 
 # initial states in ground plane {G}
 # initial state of q = [q0, q1, u0, u1, x0, x1]
@@ -52,7 +52,7 @@ t_all = []
 # integration environs
 t_step = 1e-3
 ground = 0
-no_of_walk = 10
+no_of_walk = 6
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
@@ -65,19 +65,19 @@ def get_desired_q0dot(xdot_H_desired):
     # -> q0dot = -l * xdot_H / cos(theta0)
     # -> q0dot = -l * xdot_H
     return -l * xdot_H_desired
-q0dot_des = get_desired_q0dot(xdot_H_desired=0.5)
+q0dot_des = get_desired_q0dot(xdot_H_desired=2.5)
 control_set = False
 phi_des = 0
 
-Kp_v = 0.5
-Kp_phi = 100.0
+Kp_v = 0.05
+Kp_phi = 4.0
 Kd_phi = 0.05
 
 print(1000 * t_step * sample_factor)
 print()
 print("START")
 
-def f_single_stance(x,u=0):
+def f_single_stance(x,u):
     I = leg_I
     M = hip_m
     c = leg_c
@@ -104,9 +104,9 @@ def f_single_stance(x,u=0):
     
     return np.array([
         omega0, 
-        omega1, 
+        omega1 + u, 
         x_new[0], 
-        x_new[1] + u 
+        x_new[1] 
         ])
 
 def f_foot_strike(x):
@@ -186,7 +186,6 @@ def f_foot_strike(x):
 def check_sys(x1):
     if x1 < - 1 * event_thres:
         print('SYSTEM FAILED...')
-        # print(x1)
         print()
         draw_anime(False)
 
@@ -215,12 +214,13 @@ def get_hip(x, x_current_stance):
     return hip_G[0:2]
 
 def draw_anime(success):
+    print('TIME NOW : ', t)
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "passive_walker_"
+        save_name = "walker_control_"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "passive_walker_" + "_failed"
+        save_name = "walker_control_" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
@@ -235,13 +235,18 @@ def draw_anime(success):
         mission="Walker Control", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
 
-def swing_control(phidot_d, phidot_now):
-    u = Kp_phi * (phidot_d - phidot_now)
+def swing_control(phi_d, x):
+    current_phidot = f_single_stance(x=x,u=0)[1]
+    print(phi_d)
+    print((phi_d - x[1]))
+    u = Kp_phi * (phi_d - x[1]) - current_phidot
+    # print(phidot_d)
+    # print((phidot_d - x[3]))
     # print(phidot_d)
     # print(u)
     # exit()
@@ -252,9 +257,12 @@ while True:
         # integrate throughout single stance
         while True:
             if control_set:
-                u = swing_control(phidot_d=phi_des, phidot_now=x_rk4[1])
+                # print("why!!!!!!!!!!!!!!!!!!!!!!1")
+                # print(phi_des - x_rk4[1])
+                u = swing_control(phi_d=phi_des, x=x_rk4)
             else:
                 u = 0
+            # print(u)
             x_rk4_new = inte().rk4_ctrl(f_single_stance, x=x_rk4, u=u, h=t_step)
             
             q0_all_rk4.append(x_rk4_new[0])
@@ -273,16 +281,16 @@ while True:
             
             check_sys(hip[1])
 
-            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > event_thres and np.abs(x_rk4[1]) > event_thres and x_rk4[0] < 0:
+            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 10 * event_thres and np.abs(x_rk4[1]) > 10 * event_thres and x_rk4[0] < 0:
                 fsm = 'foot_strike'
-                # print("")
+                print("SWITCH TO FOOT STRIKE")
                 break
             
             if np.abs(x_rk4[0]) < 0.1 * event_thres and (not control_set):
                 print("APEX!")
                 print()
                 # phi = 0.5+0.05*(thetadot-thetadot_des);
-                phi_des = 0.25 + Kp_v * (x_rk4[2] - q0dot_des)
+                phi_des = 0.5 + Kp_v * (x_rk4[2] - q0dot_des)
                 # print(x_rk4[2])
                 # print((x_rk4[2] - q0dot_des))
                 # print(Kp_phi)
@@ -291,15 +299,16 @@ while True:
                 # print()
                 control_set = True
             
-            if t > 10.0:
-                print("TIME'S UP")
-                draw_anime(False)
+            # if t > 10.0:
+            #     print("TIME'S UP")
+            #     draw_anime(False)
         
     elif fsm == 'foot_strike':
         # bounce state
         x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
         theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
         x_rk4 = np.array([theta0, theta1, omega0, omega1])
+        print(x_rk4)
         if foot_on_ground_now == 1:
             foot_on_ground_now = 2
         else:
@@ -308,8 +317,9 @@ while True:
         fsm = 'single_stance'
         walk_i = walk_i + 1
         print(walk_i)
+        # control_set = False
             
     if walk_i == no_of_walk:
         break
-    
+
 draw_anime(True)

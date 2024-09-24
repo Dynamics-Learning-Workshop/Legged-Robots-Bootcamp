@@ -195,9 +195,6 @@ class Integrator(RobotUtils):
                 linewidth=2
             )
             
-            print(hip[0], hip[0]-0.6)
-            print(hip[1], hip[1]+0.1)
-            # exit()
             self.neck, = self.ax.plot(
                 [hip[0], hip[0]], 
                 [hip[1], hip[1]+0.6], 
