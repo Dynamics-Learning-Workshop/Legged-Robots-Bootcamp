@@ -217,7 +217,7 @@ def draw_anime(success):
     print('TIME NOW : ', t)
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "walker_control_"
+        save_name = "walker_control"
     else:
         print('SYSTEM INTEGRATION FAILED...')
         save_name = "walker_control_" + "_failed"
