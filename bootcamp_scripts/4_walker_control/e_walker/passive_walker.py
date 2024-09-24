@@ -28,6 +28,7 @@ u0_initial = -0.25
 u0_initial = -0.231869638058930
 u1_initial = 0.2
 u1_initial = 0.037978468073743
+# % zstar = [0.162597833780041  -0.231869638058930  -0.325195667560083   0.037978468073743]
 
 x0_initial = 0.0
 x1_initial = 0.0
@@ -54,7 +55,7 @@ t_all = []
 # integration environs
 t_step = 1e-3
 ground = 0
-no_of_walk = 4
+no_of_walk = 5
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
@@ -187,6 +188,15 @@ def get_foot_in_air(x, x_current_stance):
     foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
     
     return foot_in_air_G[0:2]
+def get_hip(x, x_current_stance):
+    H_B1_2_G = util().homo2D(
+        psi=np.pi/2+x[0], 
+        trans=np.array([x_current_stance[0],0])
+    )
+    
+    hip_G = H_B1_2_G @ np.array([leg_l, 0, 1])
+    
+    return hip_G[0:2]
 
 def draw_anime(success):
     if success:
@@ -233,7 +243,10 @@ while True:
             
             foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
             
-            check_sys(foot_in_air[1])
+            hip = get_hip(x_rk4, x_current_stance)
+            
+            check_sys(hip[1])
+            
             # print(np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres)
             # print(np.abs(2 * x_rk4[0]) - np.abs(x_rk4[1]) < event_thres)
             # if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres:
@@ -243,7 +256,7 @@ while True:
                 # print("")
                 break
             
-            if t > 10:
+            if t > 20:
                 draw_anime(False)
         
     elif fsm == 'foot_strike':

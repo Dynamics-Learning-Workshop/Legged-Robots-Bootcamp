@@ -65,13 +65,15 @@ def get_desired_q0dot(xdot_H_desired):
     # -> q0dot = -l * xdot_H / cos(theta0)
     # -> q0dot = -l * xdot_H
     return -l * xdot_H_desired
-q0dot_des = get_desired_q0dot(xdot_H_desired=2.5)
+q0dot_des = get_desired_q0dot(xdot_H_desired=4.5)
 control_set = False
 phi_des = 0
 
 Kp_v = 0.05
 Kp_phi = 4.0
-Kd_phi = 0.05
+Kp_phidot = 8.0
+# Kd_phi = 0.05
+
 
 print(1000 * t_step * sample_factor)
 print()
@@ -104,9 +106,9 @@ def f_single_stance(x,u):
     
     return np.array([
         omega0, 
-        omega1 + u, 
+        omega1, 
         x_new[0], 
-        x_new[1] 
+        x_new[1] + u
         ])
 
 def f_foot_strike(x):
@@ -242,15 +244,13 @@ def draw_anime(success):
 
 def swing_control(phi_d, x):
     current_phidot = f_single_stance(x=x,u=0)[1]
-    print(phi_d)
-    print((phi_d - x[1]))
-    print()
-    u = Kp_phi * (phi_d - x[1]) - current_phidot
+    current_phiddot = f_single_stance(x=x,u=0)[3]
+    phidot_d = Kp_phi * (phi_d - x[1]) - current_phidot
     # print(phidot_d)
-    # print((phidot_d - x[3]))
-    # print(phidot_d)
-    # print(u)
-    # exit()
+    
+    u = Kp_phidot * (phidot_d - x[3]) - 0.0 * current_phiddot
+    # print(phidot_d - x[3])
+    
     return u
 
 while True:
