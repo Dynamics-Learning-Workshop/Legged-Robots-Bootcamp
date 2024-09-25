@@ -23,11 +23,11 @@ q1_all_rk4 = []
 t_step = 1e-3
 t_all = []
 
-q0_initial=0.1
-q1_initial=0.0
-u0_initial=-0.0
-u1_initial=-0.0
-x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
+q0=0.1
+q1=0.0
+u0=-0.0
+u1=-0.0
+x_rk4 = np.array([q0, q1, u0, u1])
 
 def draw_anime(success):
     if success:

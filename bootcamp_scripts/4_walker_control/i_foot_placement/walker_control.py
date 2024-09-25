@@ -23,21 +23,21 @@ slope_angle = 0.025
 # which are {q0, q1} = {theta_leg0, theta_leg1}
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
-q0_initial = 0.0
-q0_initial = 0.162597833780041
-q1_initial = -0.0
-q1_initial =  -0.325195667560083
+q0 = 0.0
+q0 = 0.162597833780041
+q1 = -0.0
+q1 =  -0.325195667560083
 
-u0_initial = -0.25
-u0_initial = -0.231869638058930
-u1_initial = 0.2
-u1_initial = 0.037978468073743
+u0 = -0.25
+u0 = -0.231869638058930
+u1 = 0.2
+u1 = 0.037978468073743
 
-x0_initial = 0.0
-x1_initial = 0.0
-x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
+x0 = 0.0
+x1 = 0.0
+x_rk4 = np.array([q0, q1, u0, u1])
 print(x_rk4)
-x_current_stance = [x0_initial, x1_initial]
+x_current_stance = [x0, x1]
 foot_on_ground_now = 1
 t = 0
 

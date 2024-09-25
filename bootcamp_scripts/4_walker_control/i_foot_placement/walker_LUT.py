@@ -20,18 +20,18 @@ slope_angle = 0.01
 # which are {q0, q1} = {theta_leg0, theta_leg1}
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
-q0_initial = 0.0
-q1_initial = 0.4
+q0 = 0.0
+q1 = 0.4
 
-u0_initial = -0.5
-u1_initial = 0.0
+u0 = -0.5
+u1 = 0.0
 
 
-x0_initial = 0.0
-x1_initial = 0.0
-x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
+x0 = 0.0
+x1 = 0.0
+x_rk4 = np.array([q0, q1, u0, u1])
 print(x_rk4)
-x_current_stance = [x0_initial, x1_initial]
+x_current_stance = [x0, x1]
 foot_on_ground_now = 1
 t = 0
 
@@ -72,6 +72,7 @@ phi_des = 0
 Kp_v = 0.05
 Kp_phi = 4.0
 Kp_phidot = 8.0
+# Kd_phi = 0.05
 
 
 print(1000 * t_step * sample_factor)
@@ -282,21 +283,17 @@ while True:
             
             check_sys(hip[1])
 
-            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 10 * event_thres and np.abs(x_rk4[1]) > 10 * event_thres and x_rk4[0] < 0:
+            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
                 fsm = 'foot_strike'
                 print("SWITCH TO FOOT STRIKE")
                 break
             
             if np.abs(x_rk4[0]) < 0.1 * event_thres:
                 print("APEX!")
-                print()
-                # phi = 0.5+0.05*(thetadot-thetadot_des);
                 phi_des = 0.5 + Kp_v * (x_rk4[2] - q0dot_des)
-                # print(x_rk4[2])
-                # print((x_rk4[2] - q0dot_des))
-                # print(Kp_phi)
-                print("PHI_DES")
-                print(phi_des)
+                print("v_error: ", x_rk4[2] - q0dot_des)
+                print("PHI_DES: ", phi_des)
+                print()
                 
                 control_set = True
             
