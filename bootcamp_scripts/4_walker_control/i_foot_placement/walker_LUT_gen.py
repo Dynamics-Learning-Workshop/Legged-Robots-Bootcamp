@@ -1,7 +1,9 @@
 import numpy as np
-from scipy.interpolate import RegularGridInterpolator
+from scipy.interpolate import griddata
 import sys
 import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
@@ -15,37 +17,305 @@ leg_c = 0.5 # m, CoM of the leg
 g = 10.0 # gravity
 slope_angle = 0.01
 
-A_vals = np.linspace(0, 1, 11)  # e.g., 0.0, 0.1, 0.2, ..., 1.0
-B_vals = np.linspace(0, 1, 11)
-C_vals = np.linspace(0, 1, 11)
-D_vals = np.linspace(0, 1, 11)
+# initial states in ground plane {G}
+# initial state of q = [q0, q1, u0, u1, x0, x1]
+# which are {q0, q1} = {theta_leg0, theta_leg1}
+# which are {u0, u1} = {omega_leg0, omega_leg1}
+# which are {x0, x1} = {xc_leg0, xc_leg1}
+q0 = 0.0
+q1 = 0.4
 
-# Example: Precompute output values for each combination of A, B, C, D
-# Here we are assuming some function f(A, B, C, D) that gives the output
-def f(A, B, C, D):
-    # Example function for output, replace with your real calculation
-    return A * B + C * D
+u0 = -0.5
+u1 = 0.0
+
+x_rk4 = np.array([q0, q1, u0, u1])
+foot_on_ground_now = 1
+t = 0
+
+# integration environs
+t_step = 1e-3
+ground = 0
+no_of_walk = 6
+walk_i = 0
+event_thres = 1e-2
+
+# controller related
+Kp_v = 0.05
+Kp_phi = 4.0
+Kp_phidot = 8.0
+
+# LUT-related
+q1_vals = np.linspace(-np.pi/2, np.pi/2, 5)
+u0_vals = np.linspace(-np.pi, np.pi, 5)
+u1_vals = np.linspace(-np.pi, np.pi, 5)
+U_vals = np.linspace(-np.pi/2, np.pi/2, 5)
+
+def f_single_stance(x,u):
+    I = leg_I
+    M = hip_m
+    c = leg_c
+    l = leg_l
+    m = leg_m
+    
+    theta0 = x[0]
+    theta1 = x[1]
+    omega0 = x[2]
+    omega1 = x[3]
+    gam = slope_angle
+    
+    M00 =  2.0*I + 1.0*M*l**2 + 2.0*c**2*m - 2.0*c*l*m*np.cos(theta1) - 2.0*c*l*m + 2.0*l**2*m
+    M01 =  1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1)
+    M10 =  1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1)
+    M11 =  1.0*I + 1.0*c**2*m
+    
+    b_0 =  1.0*M*g*l*np.sin(gam - theta0) - 1.0*c*g*m*np.sin(gam - theta0) + 1.0*c*g*m*np.sin(-gam + theta0 + theta1) + 2.0*c*l*m*omega0*omega1*np.sin(theta1) + 1.0*c*l*m*omega1**2*np.sin(theta1) + 2.0*g*l*m*np.sin(gam - theta0)
+    b_1 =  1.0*c*m*(g*np.sin(-gam + theta0 + theta1) - l*omega0**2*np.sin(theta1))
+    
+    A = np.array([[M00, M01],[M10, M11]])
+    b = np.array([-b_0, -b_1])
+    x_new = np.linalg.solve(A,b)
+    
+    return np.array([
+        omega0, 
+        omega1, 
+        x_new[0], 
+        x_new[1] + u
+        ])
+
+def f_foot_strike(x):
+    
+    I = leg_I
+    M = hip_m
+    c = leg_c
+    l = leg_l
+    m = leg_m
+    
+    theta0_n = x[0]
+    theta1_n = x[1]
+    omega0_n = x[2]
+    omega1_n = x[3]
+    
+    M00 = 1.0*M + 2.0*m
+    M01 = 0
+    M02 = -1.0*M*l*np.cos(theta0_n) + 1.0*m*(c*np.cos(theta0_n) + c*np.cos(theta0_n + theta1_n) - 2*l*np.cos(theta0_n))
+    M03 = 1.0*c*m*np.cos(theta0_n + theta1_n)
+    M10 = 0
+    M11 = 1.0*M + 2.0*m
+    M12 = -1.0*M*l*np.sin(theta0_n) + 1.0*m*(c*np.sin(theta0_n) + c*np.sin(theta0_n + theta1_n) - 2*l*np.sin(theta0_n))
+    M13 = 1.0*c*m*np.sin(theta0_n + theta1_n)
+    M20 = -1.0*M*l*np.cos(theta0_n) + 1.0*c*m*np.cos(theta0_n) + 1.0*c*m*np.cos(theta0_n + theta1_n) - 2.0*l*m*np.cos(theta0_n)
+    M21 = -1.0*M*l*np.sin(theta0_n) + 1.0*c*m*np.sin(theta0_n) + 1.0*c*m*np.sin(theta0_n + theta1_n) - 2.0*l*m*np.sin(theta0_n)
+    M22 = 2.0*I + 1.0*M*l**2 + 2.0*c**2*m - 2.0*c*l*m*np.cos(theta1_n) - 2.0*c*l*m + 2.0*l**2*m
+    M23 = 1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1_n)
+    M30 = 1.0*c*m*np.cos(theta0_n + theta1_n)
+    M31 = 1.0*c*m*np.sin(theta0_n + theta1_n)
+    M32 = 1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1_n)
+    M33 = 1.0*I + 1.0*c**2*m
+    
+    M_fs = np.array([[M00, M01, M02, M03], [M10, M11, M12, M13], [M20, M21, M22, M23], [M30, M31, M32, M33]])
+    
+    J00 = 1
+    J01 = 0
+    J02 = l*(-np.cos(theta0_n) + np.cos(theta0_n + theta1_n))
+    J03 = l*np.cos(theta0_n + theta1_n)
+    J10 = 0
+    J11 = 1
+    J12 = l*(-np.sin(theta0_n) + np.sin(theta0_n + theta1_n))
+    J13 = l*np.sin(theta0_n + theta1_n)
+    
+    J_C2 = np.array([[J00, J01, J02, J03], [J10, J11, J12, J13]])
+
+    A = np.zeros((6,6))
+    A[0:4,0:4] = M_fs
+    A[0:4,4:6] = -J_C2.transpose()
+    A[4:6,0:4] = J_C2
+    # A = np.array([[M_fs, -J_C2.transpose()],[J_C2, np.zeros([2,2])]])
+    
+    omega0_o = x[2]
+    omega1_o = x[2]
+    qdot_ = np.array([0, 0, omega0_o, omega1_o])
+    b = np.zeros([6])
+    b[0:4] = M_fs @ qdot_
+    # b = np.array([M_fs @ qdot_,0,0])
+    
+    x_new = np.linalg.solve(A,b)
+    
+    omega0_n = x_new[2]
+    omega1_n = x_new[3]
+    
+    # change parameter expression: leg1 -> leg2, leg2 -> leg1
+    theta0 = x[0] + x[1]
+    theta1 = -x[1]
+    omega0 = omega0_n + omega1_n
+    omega1 = -omega1_n
+    
+    return np.array([
+        theta0, 
+        theta1, 
+        omega0, 
+        omega1 
+        ])
+
+def check_sys(x1):
+    if x1 < - 1 * event_thres:
+        return True
+    else:
+        return False
+
+def get_foot_in_air(x, x_current_stance):
+    H_B1_2_G = util().homo2D(
+        psi=np.pi/2+x[0], 
+        trans=np.array([x_current_stance[0],0])
+    )
+    H_B2_2_B1 = util().homo2D(
+        psi=np.pi + x[1], 
+        trans=np.array([leg_l,0])
+    )
+    foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([leg_l, 0, 1]))
+    foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
+    
+    return foot_in_air_G[0:2]
+
+def get_hip(x, x_current_stance):
+    H_B1_2_G = util().homo2D(
+        psi=np.pi/2+x[0], 
+        trans=np.array([x_current_stance[0],0])
+    )
+    
+    hip_G = H_B1_2_G @ np.array([leg_l, 0, 1])
+    
+    return hip_G[0:2]
+
+def swing_control(phi_d, x):
+    # cascaded P-control here for swing leg control
+    current_phidot = f_single_stance(x=x,u=0)[1]
+    current_phiddot = f_single_stance(x=x,u=0)[3]
+    phidot_d = Kp_phi * (phi_d - x[1]) - current_phidot
+    
+    u = Kp_phidot * (phidot_d - x[3]) - 0.0 * current_phiddot
+    
+    return u
+
+# integration function
+
+def P(q1, u0, u1, U):
+    x_rk4 = np.array([0, q1, u0, u1])
+    fsm = 'single_stance'
+    x_current_stance = [0,0]
+    after_foot_strike = False
+    while True:
+        if fsm == 'single_stance':
+            # integrate throughout single stance
+            while True:
+                u = swing_control(phi_d=U, x=x_rk4)
+
+                x_rk4_new = inte().rk4_ctrl(f_single_stance, x=x_rk4, u=u, h=t_step)
+
+                x_rk4 = x_rk4_new
+                
+                foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
+                hip = get_hip(x_rk4, x_current_stance)
+                
+                fail = check_sys(hip[1])
+                if fail:
+                    print('SYSTEM FAILED...')
+                    print()
+                    return False, 0
+                                
+                if np.abs(x_rk4[0]) < 0.1 * event_thres and after_foot_strike:
+                    print('SYSTEM SUCCEEDED...')
+                    print()
+                    return True, x_rk4[1]
+            
+                if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
+                    fsm = 'foot_strike'
+                    # print("SWITCH TO FOOT STRIKE")
+                    break
+        
+        elif fsm == 'foot_strike':
+            # bounce state
+            x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
+            theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
+            x_rk4 = np.array([theta0, theta1, omega0, omega1])
+            print(fsm)
+            fsm = 'single_stance'
+            
+            after_foot_strike = True
 
 # Generate the output values for all combinations
-output_values = np.zeros((len(A_vals), len(B_vals), len(C_vals), len(D_vals)))
-for i, A in enumerate(A_vals):
-    for j, B in enumerate(B_vals):
-        for k, C in enumerate(C_vals):
-            for l, D in enumerate(D_vals):
-                output_values[i, j, k, l] = f(A, B, C, D)
+output_values = np.zeros((len(q1_vals), len(u0_vals), len(u1_vals), len(U_vals)))
+output_values_vector = []
 
-# Create an interpolator object
-lut_interpolator = RegularGridInterpolator((A_vals, B_vals, C_vals, D_vals), output_values)
+# for i, A in enumerate(q1_vals):
+#     for j, B in enumerate(u0_vals):
+#         for k, C in enumerate(u1_vals):
+#             for l, D in enumerate(U_vals):
+#                 print(i, j, k, l)
+#                 success, value = P(A, B, C, D)
+#                 if success:
+#                     output_values_vector.append(value)
+                    
+#                 # output_values[i, j, k, l] = value
+#     print('=============================================')
 
-# Define a function to get interpolated value for continuous inputs
-def get_continuous_value(A, B, C, D):
-    input_point = np.array([A, B, C, D])
-    return lut_interpolator(input_point)
+tasks = [(A, B, C, D) for A in q1_vals for B in u0_vals for C in u1_vals for D in U_vals]
 
-# Example usage:
-A_input = 0.45
-B_input = 0.65
-C_input = 0.25
-D_input = 0.75
-output = get_continuous_value(A_input, B_input, C_input, D_input)
-print(output)
+# Define the function that processes a single point in the grid
+def process_point(A, B, C, D):
+    try:
+        success, value = P(A, B, C, D)  # Assuming P is your function
+        if success:
+            return value
+        else:
+            return None
+    except Exception as e:
+        print(f"Error processing point ({A}, {B}, {C}, {D}): {e}")
+        return None # If not successful, return None or a default value
+
+# Function to parallelize execution of tasks
+def parallel_lookup(tasks, num_workers=1):
+    results = []
+    # Use ProcessPoolExecutor for parallel execution
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        # Submit tasks to the executor
+        future_to_task = {executor.submit(process_point, *task): task for task in tasks}
+        
+        # Collect results as they complete
+        for future in as_completed(future_to_task):
+            result = future.result()  # Get result from future
+            if result is not None:
+                results.append(result)
+    return results
+
+# output_values_vector = parallel_lookup(tasks, num_workers=6)  # Adjust num_workers as needed
+# print(f"Total successful results: {len(output_values_vector)}")
+
+
+# exit()
+
+# points = np.array([[A, B, C, D] for A in q1_vals for B in u0_vals for C in u1_vals for D in U_vals])
+
+# values = output_values.flatten()
+
+# # Define a function to get interpolated value for continuous inputs
+# def get_continuous_value(A, B, C, D):
+#     input_point = np.array([A, B, C, D])
+#     return griddata(points, values, input_point, method='linear')
+
+# # Example usage:
+# A_input = 0.45
+# B_input = 0.65
+# C_input = 0.25
+# D_input = 0.75
+# output = get_continuous_value(A_input, B_input, C_input, D_input)
+# np.save('lut_values.npy', output_values)
+
+# print(output)
+
+# Running the parallelized computation
+if __name__ == '__main__':
+    start_time = time.time()
+    output_values_vector = parallel_lookup(tasks, num_workers=1)  # Adjust num_workers as needed
+    print(f"TOTAL SUCCESSFUL RESULTS: {len(output_values_vector)}")
+    end_time = time.time()
+    print('TIME USED: ',end_time-start_time)

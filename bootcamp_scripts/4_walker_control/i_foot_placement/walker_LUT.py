@@ -26,11 +26,9 @@ q1 = 0.4
 u0 = -0.5
 u1 = 0.0
 
-
 x0 = 0.0
 x1 = 0.0
 x_rk4 = np.array([q0, q1, u0, u1])
-print(x_rk4)
 x_current_stance = [x0, x1]
 foot_on_ground_now = 1
 t = 0

@@ -41,6 +41,8 @@ fsm = 'single_stance'
 # states after all integration
 q0_all_rk4 = []
 q1_all_rk4 = []
+u0_all_rk4 = []
+u1_all_rk4 = []
 x0_all_rk4 = []
 x1_all_rk4 = []
 foot_on_ground_now_all = [] # foot 1, foot 2
@@ -216,7 +218,16 @@ def get_hip(x, x_current_stance):
     return hip_G[0:2]
 
 def draw_anime(success):
-    print('TIME NOW : ', t)
+    print('INTEGRATION END')
+    print('TIME NOW: ', t)
+    print()
+    print('MAX q1: ', np.max(q1_all_rk4))
+    print('MIN q1: ', np.min(q1_all_rk4))
+    print('MAX u0: ', np.max(u0_all_rk4))
+    print('MIN u0: ', np.min(u0_all_rk4))
+    print('MAX u1: ', np.max(u1_all_rk4))
+    print('MIN u1: ', np.min(u1_all_rk4))
+    print('=======')
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
         save_name = "walker_control"
@@ -269,6 +280,9 @@ while True:
             
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])
+            u0_all_rk4.append(x_rk4_new[2])
+            u1_all_rk4.append(x_rk4_new[3])
+            
             x0_all_rk4.append(x_current_stance[0])
             x1_all_rk4.append(x_current_stance[1])
             foot_on_ground_now_all.append(foot_on_ground_now)
