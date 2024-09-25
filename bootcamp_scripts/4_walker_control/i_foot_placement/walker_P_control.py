@@ -237,12 +237,13 @@ def draw_anime(success):
         mission="Walker Control", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
 
 def swing_control(phi_d, x):
+    # cascaded P-control here
     current_phidot = f_single_stance(x=x,u=0)[1]
     current_phiddot = f_single_stance(x=x,u=0)[3]
     phidot_d = Kp_phi * (phi_d - x[1]) - current_phidot
@@ -287,16 +288,12 @@ while True:
                 print("SWITCH TO FOOT STRIKE")
                 break
             
-            if np.abs(x_rk4[0]) < 0.1 * event_thres and (not control_set):
+            if np.abs(x_rk4[0]) < 0.1 * event_thres:
                 print("APEX!")
-                print()
-                # phi = 0.5+0.05*(thetadot-thetadot_des);
                 phi_des = 0.5 + Kp_v * (x_rk4[2] - q0dot_des)
-                # print(x_rk4[2])
-                # print((x_rk4[2] - q0dot_des))
-                # print(Kp_phi)
-                print("PHI_DES")
-                print(phi_des)
+                print("v_error: ", x_rk4[2] - q0dot_des)
+                print("PHI_DES: ", phi_des)
+                print()
                 
                 control_set = True
             

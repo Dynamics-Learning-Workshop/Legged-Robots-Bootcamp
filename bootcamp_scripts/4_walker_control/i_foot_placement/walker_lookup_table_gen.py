@@ -72,7 +72,6 @@ phi_des = 0
 Kp_v = 0.05
 Kp_phi = 4.0
 Kp_phidot = 8.0
-# Kd_phi = 0.05
 
 
 print(1000 * t_step * sample_factor)
@@ -288,7 +287,7 @@ while True:
                 print("SWITCH TO FOOT STRIKE")
                 break
             
-            if np.abs(x_rk4[0]) < 0.1 * event_thres and (not control_set):
+            if np.abs(x_rk4[0]) < 0.1 * event_thres:
                 print("APEX!")
                 print()
                 # phi = 0.5+0.05*(thetadot-thetadot_des);

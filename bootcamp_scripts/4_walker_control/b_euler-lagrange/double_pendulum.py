@@ -32,10 +32,10 @@ x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
 def draw_anime(success):
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "double_pendulum_"
+        save_name = "double_pendulum"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "double_pendulum_" + "_failed"
+        save_name = "double_pendulum" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 

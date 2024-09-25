@@ -23,8 +23,8 @@ q1_all_rk4 = []
 t_step = 1e-3
 t_all = []
 
-q0_initial=0.1
-q1_initial=0.0
+q0_initial=1e-4
+q1_initial=np.pi
 u0_initial=-0.0
 u1_initial=-0.0
 x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
@@ -32,10 +32,10 @@ x_rk4 = np.array([q0_initial, q1_initial, u0_initial, u1_initial])
 def draw_anime(success):
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "double_pendulum_"
+        save_name = "double_pendulum"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "double_pendulum_" + "_failed"
+        save_name = "double_pendulum" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
@@ -47,7 +47,7 @@ def draw_anime(success):
         mission="Swing", 
         sim_object="double_pendulum",
         sim_info={'l1': l1, 'l2': l2},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
