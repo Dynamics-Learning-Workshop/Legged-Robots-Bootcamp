@@ -1,12 +1,11 @@
-import numpy as np
-from scipy.interpolate import griddata
 import sys
 import os
-from concurrent.futures import ProcessPoolExecutor, as_completed
-import time
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
+import pickle
+
 
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
@@ -28,9 +27,30 @@ q1 = 0.4
 u0 = -0.5
 u1 = 0.0
 
+
+x0 = 0.0
+x1 = 0.0
 x_rk4 = np.array([q0, q1, u0, u1])
+print(x_rk4)
+x_current_stance = [x0, x1]
 foot_on_ground_now = 1
 t = 0
+
+# fsm -> single_stance, foot_strike
+fsm = 'single_stance'
+
+# states after all integration
+q0_all_rk4 = []
+q1_all_rk4 = []
+u0_all_rk4 = []
+u1_all_rk4 = []
+x0_all_rk4 = []
+x1_all_rk4 = []
+foot_on_ground_now_all = [] # foot 1, foot 2
+dx0_all_rk4 = []
+dx1_all_rk4 = []
+
+t_all = []
 
 # integration environs
 t_step = 1e-3
@@ -38,17 +58,34 @@ ground = 0
 no_of_walk = 6
 walk_i = 0
 event_thres = 1e-2
+sample_factor = 10
 
-# controller related
+# set controller prequisites
+def get_desired_q0dot(xdot_H_desired):
+    l = leg_l
+    # get the desired q0dot from xdot_H_desired
+    # from Jacobian, we know -l cos(theta0) * q0dot = xdot_H
+    # -> q0dot = -l * xdot_H / cos(theta0)
+    # -> q0dot = -l * xdot_H
+    return -l * xdot_H_desired
+q0dot_des = get_desired_q0dot(xdot_H_desired=1.5)
+print(q0dot_des)
+print("==================")
+control_set = False
+phi_des = 0
+
 Kp_v = 0.05
 Kp_phi = 4.0
 Kp_phidot = 8.0
+# Kd_phi = 0.05
 
-# LUT-related
-q1_vals = np.linspace(-np.pi/2, np.pi/2, 5)
-u0_vals = np.linspace(-np.pi, np.pi, 5)
-u1_vals = np.linspace(-np.pi, np.pi, 5)
-U_vals = np.linspace(-np.pi/2, np.pi/2, 5)
+# poly fitting control
+with open('test_model.pkl', 'rb') as f:
+    poly, model = pickle.load(f)
+
+print(1000 * t_step * sample_factor)
+print()
+print("START")
 
 def f_single_stance(x,u):
     I = leg_I
@@ -158,9 +195,9 @@ def f_foot_strike(x):
 
 def check_sys(x1):
     if x1 < - 1 * event_thres:
-        return True
-    else:
-        return False
+        print('SYSTEM FAILED...')
+        print()
+        draw_anime(False)
 
 def get_foot_in_air(x, x_current_stance):
     H_B1_2_G = util().homo2D(
@@ -186,136 +223,128 @@ def get_hip(x, x_current_stance):
     
     return hip_G[0:2]
 
+def draw_anime(success):
+    print('INTEGRATION END')
+    print('TIME NOW: ', t)
+    print()
+    print('MAX q1: ', np.max(q1_all_rk4))
+    print('MIN q1: ', np.min(q1_all_rk4))
+    print('MAX u0: ', np.max(u0_all_rk4))
+    print('MIN u0: ', np.min(u0_all_rk4))
+    print('MAX u1: ', np.max(u1_all_rk4))
+    print('MIN u1: ', np.min(u1_all_rk4))
+    print('=======')
+    if success:
+        print('SYSTEM INTEGRATION SUCCEEDED...')
+        save_name = "walker_control"
+    else:
+        print('SYSTEM INTEGRATION FAILED...')
+        save_name = "walker_control_" + "_failed"
+    
+    inte().anime(
+        t=t_all[::sample_factor], 
+        x_states=[
+            q0_all_rk4[::sample_factor], 
+            q1_all_rk4[::sample_factor], 
+            x0_all_rk4[::sample_factor], 
+            x1_all_rk4[::sample_factor],
+            foot_on_ground_now_all[::sample_factor]
+        ], 
+        ms=1000 * t_step * sample_factor,
+        mission="Walker Control", 
+        sim_object="walker",
+        sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
+        save=False,
+        save_name=save_name
+    )
+    exit()
+
 def swing_control(phi_d, x):
-    # cascaded P-control here for swing leg control
+    # cascaded P-control here
     current_phidot = f_single_stance(x=x,u=0)[1]
     current_phiddot = f_single_stance(x=x,u=0)[3]
     phidot_d = Kp_phi * (phi_d - x[1]) - current_phidot
+    # print(phidot_d)
     
     u = Kp_phidot * (phidot_d - x[3]) - 0.0 * current_phiddot
+    # print(phidot_d - x[3])
     
     return u
 
-# integration function
+def phi_control(d):
+    dd_poly = poly.transform([d])
+    U_predicted = model.predict(dd_poly)
+    return U_predicted
 
-def P(q1, u0, u1, U):
-    x_rk4 = np.array([0, q1, u0, u1])
-    fsm = 'single_stance'
-    x_current_stance = [0,0]
-    after_foot_strike = False
-    while True:
-        if fsm == 'single_stance':
-            # integrate throughout single stance
-            while True:
-                u = swing_control(phi_d=U, x=x_rk4)
-
-                x_rk4_new = inte().rk4_ctrl(f_single_stance, x=x_rk4, u=u, h=t_step)
-
-                x_rk4 = x_rk4_new
-                
-                foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
-                hip = get_hip(x_rk4, x_current_stance)
-                
-                fail = check_sys(hip[1])
-                if fail:
-                    print('SYSTEM FAILED...')
-                    print()
-                    return False, 0
-                                
-                if np.abs(x_rk4[0]) < 0.1 * event_thres and after_foot_strike:
-                    print('SYSTEM SUCCEEDED...')
-                    print()
-                    return True, x_rk4[1]
+while True:
+    if fsm == 'single_stance':
+        # integrate throughout single stance
+        while True:
+            if control_set:
+                # print("why!!!!!!!!!!!!!!!!!!!!!!1")
+                # print(phi_des - x_rk4[1])
+                u = swing_control(phi_d=phi_des, x=x_rk4)
+            else:
+                u = 0
+            # print(u)
+            x_rk4_new = inte().rk4_ctrl(f_single_stance, x=x_rk4, u=u, h=t_step)
             
-                if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
-                    fsm = 'foot_strike'
-                    # print("SWITCH TO FOOT STRIKE")
-                    break
+            q0_all_rk4.append(x_rk4_new[0])
+            q1_all_rk4.append(x_rk4_new[1])
+            u0_all_rk4.append(x_rk4_new[2])
+            u1_all_rk4.append(x_rk4_new[3])
+            
+            x0_all_rk4.append(x_current_stance[0])
+            x1_all_rk4.append(x_current_stance[1])
+            foot_on_ground_now_all.append(foot_on_ground_now)
+            
+            t = t + t_step
+            t_all.append(t)
+
+            x_rk4 = x_rk4_new
+            
+            foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
+            hip = get_hip(x_rk4, x_current_stance)
+            
+            check_sys(hip[1])
+
+            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
+                fsm = 'foot_strike'
+                print("SWITCH TO FOOT STRIKE")
+                break
+            
+            if np.abs(x_rk4[0]) < 0.1 * event_thres:
+                print("APEX!")
+                phi_des = 0.5 + Kp_v * (x_rk4[2] - q0dot_des)
+                print([x_rk4[1], x_rk4[2], x_rk4[3], q0dot_des])
+                phi_des = phi_control(d=np.array([x_rk4[1], x_rk4[2], x_rk4[3], q0dot_des]))[0]
+                print("v_error: ", x_rk4[2] - q0dot_des)
+                print("PHI_DES: ", phi_des)
+                print()
+                
+                control_set = True
+            
+            # if t > 10.0:
+            #     print("TIME'S UP")
+            #     draw_anime(False)
         
-        elif fsm == 'foot_strike':
-            # bounce state
-            x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
-            theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
-            x_rk4 = np.array([theta0, theta1, omega0, omega1])
-            print(fsm)
-            fsm = 'single_stance'
-            
-            after_foot_strike = True
-
-# Generate the output values for all combinations
-output_values = np.zeros((len(q1_vals), len(u0_vals), len(u1_vals), len(U_vals)))
-output_values_vector = []
-
-# for i, A in enumerate(q1_vals):
-#     for j, B in enumerate(u0_vals):
-#         for k, C in enumerate(u1_vals):
-#             for l, D in enumerate(U_vals):
-#                 print(i, j, k, l)
-#                 success, value = P(A, B, C, D)
-#                 if success:
-#                     output_values_vector.append(value)
-                    
-#                 # output_values[i, j, k, l] = value
-#     print('=============================================')
-
-tasks = [(A, B, C, D) for A in q1_vals for B in u0_vals for C in u1_vals for D in U_vals]
-
-# Define the function that processes a single point in the grid
-def process_point(A, B, C, D):
-    try:
-        success, value = P(A, B, C, D)  # Assuming P is your function
-        if success:
-            return value
+    elif fsm == 'foot_strike':
+        # bounce state
+        x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
+        theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
+        x_rk4 = np.array([theta0, theta1, omega0, omega1])
+        
+        if foot_on_ground_now == 1:
+            foot_on_ground_now = 2
         else:
-            return None
-    except Exception as e:
-        print(f"Error processing point ({A}, {B}, {C}, {D}): {e}")
-        return None # If not successful, return None or a default value
-
-# Function to parallelize execution of tasks
-def parallel_lookup(tasks, num_workers=1):
-    results = []
-    # Use ProcessPoolExecutor for parallel execution
-    with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        # Submit tasks to the executor
-        future_to_task = {executor.submit(process_point, *task): task for task in tasks}
+            foot_on_ground_now = 1
         
-        # Collect results as they complete
-        for future in as_completed(future_to_task):
-            result = future.result()  # Get result from future
-            if result is not None:
-                results.append(result)
-    return results
+        fsm = 'single_stance'
+        walk_i = walk_i + 1
+        print(walk_i)
+        # control_set = False
+            
+    if walk_i == no_of_walk:
+        break
 
-# output_values_vector = parallel_lookup(tasks, num_workers=6)  # Adjust num_workers as needed
-# print(f"Total successful results: {len(output_values_vector)}")
-
-
-# exit()
-
-# points = np.array([[A, B, C, D] for A in q1_vals for B in u0_vals for C in u1_vals for D in U_vals])
-
-# values = output_values.flatten()
-
-# # Define a function to get interpolated value for continuous inputs
-# def get_continuous_value(A, B, C, D):
-#     input_point = np.array([A, B, C, D])
-#     return griddata(points, values, input_point, method='linear')
-
-# # Example usage:
-# A_input = 0.45
-# B_input = 0.65
-# C_input = 0.25
-# D_input = 0.75
-# output = get_continuous_value(A_input, B_input, C_input, D_input)
-# np.save('lut_values.npy', output_values)
-
-# print(output)
-
-# Running the parallelized computation
-if __name__ == '__main__':
-    start_time = time.time()
-    output_values_vector = parallel_lookup(tasks, num_workers=1)  # Adjust num_workers as needed
-    print(f"TOTAL SUCCESSFUL RESULTS: {len(output_values_vector)}")
-    end_time = time.time()
-    print('TIME USED: ',end_time-start_time)
+draw_anime(True)

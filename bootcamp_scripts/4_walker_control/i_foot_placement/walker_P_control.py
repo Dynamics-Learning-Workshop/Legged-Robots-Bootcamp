@@ -68,6 +68,8 @@ def get_desired_q0dot(xdot_H_desired):
     # -> q0dot = -l * xdot_H
     return -l * xdot_H_desired
 q0dot_des = get_desired_q0dot(xdot_H_desired=4.5)
+print(q0dot_des)
+print("==================")
 control_set = False
 phi_des = 0
 

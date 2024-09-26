@@ -26,8 +26,7 @@ Please refer to [this](/bootcamp_scripts/3_passive_walker/d_walker/passive_walke
 ### I. Foot Placement Control
 - Try the following control law
   - A linear P controller with naive tuning ([here](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_P_control.py)).
-  - A lookup table.
-  - A linear polynomial regression.
+  - A lookup table (not suitable for input dimension > 2).
   - A quadratic polynomial regression.
   - A neural network.
   - A Gaussian process regression.
