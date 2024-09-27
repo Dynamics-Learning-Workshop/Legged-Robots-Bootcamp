@@ -23,13 +23,8 @@ def predict(d):
     return U_predicted
 
 # lala = process_point(0.4, -0.5, 0.0, 0.7064577720614232)
-q1_query = 0.4
-u0_query = -0.5
-u1_query = 0.0
-q0dot_plus_query = -1.5
 
-
-dd = np.array([0., -0., 0.0, -0.0]) 
+dd = np.array([0.4, -0.5, 0.0, -1.5]) 
 # -0.31588649827928467
 
 print(predict(d=dd))

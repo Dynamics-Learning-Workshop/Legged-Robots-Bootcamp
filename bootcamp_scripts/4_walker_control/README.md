@@ -23,7 +23,7 @@ Please refer to [this](/bootcamp_scripts/3_passive_walker/d_walker/passive_walke
 
 ### H. Walker Control
 
-### I. Foot Placement Control with Data Fitting
+### I. Foot Placement Control with Data Fitting (simplified model)
 - Generate the control data [here](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_data_gen.py).
 - Try the following control law
   - A linear P controller with naive tuning ([here](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_P_control.py)).
