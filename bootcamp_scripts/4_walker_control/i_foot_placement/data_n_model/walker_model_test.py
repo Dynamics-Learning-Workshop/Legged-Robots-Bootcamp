@@ -13,8 +13,11 @@ print("Data loaded successfully from pickle.")
     
 #     return U_predicted
 def predict(d):
-    # dd_poly = poly.transform([d])
-    dd_pca = pca.transform([d])
+    input_min = np.array([-1.57079633, -3.14159265, -3.14159265, -2.86283747])
+    input_max = np.array([1.57079633, 0.62831853, 3.14159265, 0.0482202])
+    
+    d_normalized = (d - input_min) / (input_max - input_min) 
+    dd_pca = pca.transform([d_normalized])
     U_predicted = model.predict(dd_pca)
     
     return U_predicted
@@ -26,7 +29,7 @@ u1_query = 0.0
 q0dot_plus_query = -1.5
 
 
-dd = np.array([0.4, -0.5, 0.0, -1.5]) 
+dd = np.array([0., -0., 0.0, -0.0]) 
 # -0.31588649827928467
 
 print(predict(d=dd))

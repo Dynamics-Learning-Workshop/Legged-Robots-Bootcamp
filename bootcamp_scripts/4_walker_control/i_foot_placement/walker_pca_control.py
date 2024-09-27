@@ -59,7 +59,7 @@ no_of_walk = 6
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
-
+ 
 # set controller prequisites
 def get_desired_q0dot(xdot_H_desired):
     l = leg_l
@@ -68,7 +68,8 @@ def get_desired_q0dot(xdot_H_desired):
     # -> q0dot = -l * xdot_H / cos(theta0)
     # -> q0dot = -l * xdot_H
     return -l * xdot_H_desired
-q0dot_des = get_desired_q0dot(xdot_H_desired=0.1)
+
+q0dot_des = get_desired_q0dot(xdot_H_desired=2.0)
 print(q0dot_des)
 print("==================")
 # exit()
@@ -83,8 +84,8 @@ Kp_phidot = 8.0
 # poly fitting control
 # with open('./data_n_model/test_model.pkl', 'rb') as f:
     # poly, model = pickle.load(f)
-with open('./data_n_model/pca_model.pkl', 'rb') as f:
-    pca, model = pickle.load(f)
+with open('./data_n_model/pca_model_here.pkl', 'rb') as f:
+    pca, poly, model = pickle.load(f)
 
 print(1000 * t_step * sample_factor)
 print()
@@ -257,7 +258,7 @@ def draw_anime(success):
         mission="Walker Control (PCA)", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
@@ -266,19 +267,25 @@ def swing_control(phi_d, x):
     # cascaded P-control here
     current_phidot = f_single_stance(x=x,u=0)[1]
     current_phiddot = f_single_stance(x=x,u=0)[3]
-    phidot_d = Kp_phi * (phi_d - x[1]) - current_phidot
-    # print(phidot_d)
+    phidot_d = Kp_phi * (phi_d - x[1]) 
     
-    u = Kp_phidot * (phidot_d - x[3]) - 0.0 * current_phiddot
-    # print(phidot_d - x[3])
+    u = Kp_phidot * (phidot_d - x[3]) + current_phiddot
     
     return u
 
 def phi_control(d):
-    # dd_poly = poly.transform([d])
+    
+    input_min = np.array([-1.57079633, -3.14159265, -3.14159265, -2.86283747])
+    input_max = np.array([1.57079633, 0.62831853, 3.14159265, 0.0482202])
+    
+    d_normalized = (d - input_min) / (input_max - input_min) 
+    
+    dd_pca = pca.transform([d_normalized])
+    x_poly = poly.transform(dd_pca)
+    U_predicted = model.predict(x_poly)
+    
+    # dd_poly = poly.transform([d_normalized])
     # U_predicted = model.predict(dd_poly)
-    dd_pca = pca.transform([d])
-    U_predicted = model.predict(dd_pca)
     return U_predicted
 
 while True:

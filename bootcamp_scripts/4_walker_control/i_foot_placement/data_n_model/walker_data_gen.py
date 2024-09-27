@@ -8,7 +8,7 @@ import psutil
 from tqdm import tqdm
 
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
 
 
@@ -192,12 +192,12 @@ def get_hip(x, x_current_stance):
     return hip_G[0:2]
 
 def swing_control(phi_d, x):
-    # cascaded P-control here for swing leg control
+    # cascaded P-control here
     current_phidot = f_single_stance(x=x,u=0)[1]
     current_phiddot = f_single_stance(x=x,u=0)[3]
-    phidot_d = Kp_phi * (phi_d - x[1]) - current_phidot
+    phidot_d = Kp_phi * (phi_d - x[1]) 
     
-    u = Kp_phidot * (phidot_d - x[3]) - 0.0 * current_phiddot
+    u = Kp_phidot * (phidot_d - x[3]) + current_phiddot
     
     return u
 

@@ -250,7 +250,7 @@ def draw_anime(success):
         mission="Walker Control", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
@@ -259,11 +259,9 @@ def swing_control(phi_d, x):
     # cascaded P-control here
     current_phidot = f_single_stance(x=x,u=0)[1]
     current_phiddot = f_single_stance(x=x,u=0)[3]
-    phidot_d = Kp_phi * (phi_d - x[1]) - current_phidot
-    # print(phidot_d)
+    phidot_d = Kp_phi * (phi_d - x[1]) 
     
-    u = Kp_phidot * (phidot_d - x[3]) - 0.0 * current_phiddot
-    # print(phidot_d - x[3])
+    u = Kp_phidot * (phidot_d - x[3]) + current_phiddot
     
     return u
 
