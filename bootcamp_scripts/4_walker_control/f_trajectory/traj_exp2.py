@@ -12,9 +12,9 @@ A = sp.Matrix([
     [0, 0, 0, 0, 1, ta_f, ta_f**2, ta_f**3],
     [0, 0, 0, 0, 1, tb_f, tb_f**2, tb_f**3],
     [0, 1, 2*ta_0, 3*ta_0**2, 0, 0, 0, 0],
-    [0, 1, 2*ta_f, 3*ta_f**2, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 1, 2*ta_f, 3*ta_f**2],
     [0, 0, 0, 0, 0, 1, 2*tb_f, 3*tb_f**2],
+    [0, 1, 2*ta_f, 3*ta_f**2, 0, -1, -2*ta_f, -3*ta_f**2],
+    [0, 0, 2, 6*ta_f, 0, 0, -2, -6*ta_f]
 ])
 
 b= sp.Matrix([
@@ -78,29 +78,29 @@ def solve(
     A46 =  0
     A47 =  0
     A50 =  0
-    A51 =  1
-    A52 =  2*ta_f_
-    A53 =  3*ta_f_**2
+    A51 =  0
+    A52 =  0
+    A53 =  0
     A54 =  0
-    A55 =  0
-    A56 =  0
-    A57 =  0
+    A55 =  1
+    A56 =  2*tb_f_
+    A57 =  3*tb_f_**2
     A60 =  0
-    A61 =  0
-    A62 =  0
-    A63 =  0
+    A61 =  1
+    A62 =  2*ta_f_
+    A63 =  3*ta_f_**2
     A64 =  0
-    A65 =  1
-    A66 =  2*ta_f_
-    A67 =  3*ta_f_**2
+    A65 =  -1
+    A66 =  -2*ta_f_
+    A67 =  -3*ta_f_**2
     A70 =  0
     A71 =  0
-    A72 =  0
-    A73 =  0
+    A72 =  2
+    A73 =  6*ta_f_
     A74 =  0
-    A75 =  1
-    A76 =  2*tb_f_
-    A77 =  3*tb_f_**2
+    A75 =  0
+    A76 =  -2
+    A77 =  -6*ta_f_
     
     A = np.array([
         [A00, A01, A02, A03, A04, A05, A06, A07],
@@ -113,7 +113,9 @@ def solve(
         [A70, A71, A72, A73, A74, A75, A76, A77],
     ])
     
-    b = np.array([qa_0_, qa_f_, qa_f_, qb_f_, qadot_0_, qadot_f_, qadot_f_, qbdot_f_])
+    print(A)
+    
+    b = np.array([qa_0_, qa_f_, qa_f_, qb_f_, qadot_0_, qadot_f_, 0, 0])
     
     print()
     print('hereclear')
@@ -125,7 +127,7 @@ def solve(
     return poly_coef
 
 
-poly_coef = solve(ta_0_=0, ta_f_=1, tb_f_=3, qa_0_=0, qa_f_=0.5, qb_f_=1.0, qadot_0_=0, qadot_f_=0.2, qbdot_f_=0)
+poly_coef = solve(ta_0_=0, ta_f_=1, tb_f_=3, qa_0_=0, qa_f_=0.5, qb_f_=1.0, qadot_0_=0, qadot_f_=0, qbdot_f_=0)
 
 print(poly_coef)
 
