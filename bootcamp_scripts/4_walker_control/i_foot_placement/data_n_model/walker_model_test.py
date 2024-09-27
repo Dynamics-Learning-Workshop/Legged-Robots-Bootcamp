@@ -1,13 +1,21 @@
 import pickle
 import numpy as np
 
-with open('test_model.pkl', 'rb') as f:
-    poly, model = pickle.load(f)
+# with open('test_model.pkl', 'rb') as f:
+    # poly, model = pickle.load(f)
+with open('pca_model.pkl', 'rb') as f:
+    pca, model = pickle.load(f)
 
 print("Data loaded successfully from pickle.")
+# def predict(d):
+#     dd_poly = poly.transform([d])
+#     U_predicted = model.predict(dd_poly)
+    
+#     return U_predicted
 def predict(d):
-    dd_poly = poly.transform([d])
-    U_predicted = model.predict(dd_poly)
+    # dd_poly = poly.transform([d])
+    dd_pca = pca.transform([d])
+    U_predicted = model.predict(dd_pca)
     
     return U_predicted
 

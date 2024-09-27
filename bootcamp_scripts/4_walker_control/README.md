@@ -23,12 +23,13 @@ Please refer to [this](/bootcamp_scripts/3_passive_walker/d_walker/passive_walke
 
 ### H. Walker Control
 
-### I. Foot Placement Control
+### I. Foot Placement Control with Data Fitting
+- Generate the control data [here](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_data_gen.py).
 - Try the following control law
   - A linear P controller with naive tuning ([here](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_P_control.py)).
-  - A lookup table (not suitable for input dimension > 2).
-  - A quadratic polynomial regression.
-  - A neural network.
-  - A Gaussian process regression.
-- Add the above control laws to the [Walker](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_control.py).
+  - A lookup table (not suitable for input dimension > 2, here dim = 4).
+  - A data-fitted control with PCA ([here](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_pca_control.py) and [here](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_data_regress_pca.py)).
+  - A neural network (TBD).
+  - A Gaussian process regression (TBD).
+- Add the above control laws to the [Walker](/bootcamp_scripts/4_walker_control/i_foot_placement/walker_data_regress_pca.py).
 - Observe the dynamics via [integration](/dynamics.py) (RK4 or Euler forward).

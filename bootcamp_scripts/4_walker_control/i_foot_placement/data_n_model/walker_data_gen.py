@@ -10,8 +10,7 @@ from tqdm import tqdm
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
+
 
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
@@ -52,8 +51,8 @@ Kp_phidot = 8.0
 # LUT-related
 grid_size = 16
 q1_vals = np.linspace(-np.pi/2, np.pi/2, grid_size)
-u0_vals = np.linspace(-2 * np.pi, 2 * np.pi, grid_size)
-u1_vals = np.linspace(-2 * np.pi, 2 * np.pi, grid_size)
+u0_vals = np.linspace(-np.pi, np.pi, grid_size)
+u1_vals = np.linspace(-np.pi, np.pi, grid_size)
 U_vals = np.linspace(0.0, np.pi/2, grid_size)
 
 def f_single_stance(x,u):

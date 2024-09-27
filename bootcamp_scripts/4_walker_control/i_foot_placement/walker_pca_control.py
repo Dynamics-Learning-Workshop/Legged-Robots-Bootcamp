@@ -24,7 +24,7 @@ slope_angle = 0.01
 q0 = 0.0
 q1 = 0.4
 
-u0 = -0.5
+u0 = -0.6
 u1 = 0.0
 
 
@@ -68,9 +68,10 @@ def get_desired_q0dot(xdot_H_desired):
     # -> q0dot = -l * xdot_H / cos(theta0)
     # -> q0dot = -l * xdot_H
     return -l * xdot_H_desired
-q0dot_des = get_desired_q0dot(xdot_H_desired=1.5)
+q0dot_des = get_desired_q0dot(xdot_H_desired=0.1)
 print(q0dot_des)
 print("==================")
+# exit()
 control_set = False
 phi_des = 0
 
@@ -80,8 +81,10 @@ Kp_phidot = 8.0
 # Kd_phi = 0.05
 
 # poly fitting control
-with open('test_model.pkl', 'rb') as f:
-    poly, model = pickle.load(f)
+# with open('./data_n_model/test_model.pkl', 'rb') as f:
+    # poly, model = pickle.load(f)
+with open('./data_n_model/pca_model.pkl', 'rb') as f:
+    pca, model = pickle.load(f)
 
 print(1000 * t_step * sample_factor)
 print()
@@ -251,7 +254,7 @@ def draw_anime(success):
             foot_on_ground_now_all[::sample_factor]
         ], 
         ms=1000 * t_step * sample_factor,
-        mission="Walker Control", 
+        mission="Walker Control (PCA)", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
         save=False,
@@ -272,8 +275,10 @@ def swing_control(phi_d, x):
     return u
 
 def phi_control(d):
-    dd_poly = poly.transform([d])
-    U_predicted = model.predict(dd_poly)
+    # dd_poly = poly.transform([d])
+    # U_predicted = model.predict(dd_poly)
+    dd_pca = pca.transform([d])
+    U_predicted = model.predict(dd_pca)
     return U_predicted
 
 while True:
@@ -318,7 +323,7 @@ while True:
                 phi_des = 0.5 + Kp_v * (x_rk4[2] - q0dot_des)
                 print([x_rk4[1], x_rk4[2], x_rk4[3], q0dot_des])
                 phi_des = phi_control(d=np.array([x_rk4[1], x_rk4[2], x_rk4[3], q0dot_des]))[0]
-                print("v_error: ", x_rk4[2] - q0dot_des)
+                print("v_error: ", q0dot_des - x_rk4[2])
                 print("PHI_DES: ", phi_des)
                 print()
                 
