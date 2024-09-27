@@ -67,7 +67,7 @@ def get_desired_q0dot(xdot_H_desired):
     # -> q0dot = -l * xdot_H / cos(theta0)
     # -> q0dot = -l * xdot_H
     return -l * xdot_H_desired
-q0dot_des = get_desired_q0dot(xdot_H_desired=4.5)
+q0dot_des = get_desired_q0dot(xdot_H_desired=1.5)
 print(q0dot_des)
 print("==================")
 control_set = False
@@ -305,7 +305,7 @@ while True:
             if np.abs(x_rk4[0]) < 0.1 * event_thres:
                 print("APEX!")
                 phi_des = 0.5 + Kp_v * (x_rk4[2] - q0dot_des)
-                print("v_error: ", x_rk4[2] - q0dot_des)
+                print("v_error: ", q0dot_des - x_rk4[2])
                 print("PHI_DES: ", phi_des)
                 print()
                 

@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 input_array = np.load('input_array_16.npy')
 output_array = np.load('output_array_16.npy')
 
+print(input_array[444,:])
+print(output_array[444])
+
+exit()
+
 # Calculate stats for the 4th column of input_array
 mean_value = np.mean(input_array[:, 3])
 max_value = np.max(input_array[:, 3])

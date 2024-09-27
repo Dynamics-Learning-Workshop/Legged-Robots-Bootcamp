@@ -69,7 +69,7 @@ def get_desired_q0dot(xdot_H_desired):
     # -> q0dot = -l * xdot_H
     return -l * xdot_H_desired
 
-q0dot_des = get_desired_q0dot(xdot_H_desired=2.0)
+q0dot_des = get_desired_q0dot(xdot_H_desired=1.5)
 print(q0dot_des)
 print("==================")
 # exit()
@@ -327,8 +327,6 @@ while True:
             
             if np.abs(x_rk4[0]) < 0.1 * event_thres:
                 print("APEX!")
-                phi_des = 0.5 + Kp_v * (x_rk4[2] - q0dot_des)
-                print([x_rk4[1], x_rk4[2], x_rk4[3], q0dot_des])
                 phi_des = phi_control(d=np.array([x_rk4[1], x_rk4[2], x_rk4[3], q0dot_des]))[0]
                 print("v_error: ", q0dot_des - x_rk4[2])
                 print("PHI_DES: ", phi_des)

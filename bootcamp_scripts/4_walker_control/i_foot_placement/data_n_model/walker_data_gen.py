@@ -237,14 +237,27 @@ def draw_anime(success):
         mission="Walker Control", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
 
 # integration function
 def P(q1, u0, u1, U):
+    q0_all_rk4.clear()
+    q1_all_rk4.clear()
+    u0_all_rk4.clear()
+    u1_all_rk4.clear()
+    
+    x0_all_rk4.clear()
+    x1_all_rk4.clear()
+    t_all.clear()
+    
+    foot_on_ground_now_all.clear()
+    foot_on_ground_now = 1
+    
     x_rk4 = np.array([0, q1, u0, u1])
+    x_start_lala = np.array([0, q1, u0, u1])
     fsm = 'single_stance'
     x_current_stance = [0,0]
     after_foot_strike = False
@@ -276,13 +289,16 @@ def P(q1, u0, u1, U):
                 
                 fail = check_sys(hip[1])
                 if fail:
-                    # print('SYSTEM FAILED...')
+                    print('SYSTEM FAILED...')
                     # print()
                     return False, 0
                                 
                 if np.abs(x_rk4[0]) < 0.1 * event_thres and after_foot_strike:
-                    # print('SYSTEM SUCCEEDED...')
+                    print('SYSTEM SUCCEEDED...')
                     # print()
+                    # print(x_start_lala, x_rk4[2])                    
+                    # draw_anime(False)
+                    # print
                     return True, x_rk4[2] # qdot_plus
             
                 if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
@@ -297,6 +313,11 @@ def P(q1, u0, u1, U):
             x_rk4 = np.array([theta0, theta1, omega0, omega1])
             # print(fsm)
             fsm = 'single_stance'
+            
+            if foot_on_ground_now == 1:
+                foot_on_ground_now = 2
+            else:
+                foot_on_ground_now = 1
             
             after_foot_strike = True
 
@@ -316,6 +337,7 @@ def process_point(q1, u0, u1, U):
     except Exception as e:
         print(f"Error processing point ({q1}, {u0}, {u1}, {U}): {e}")
         return None 
+
 def save_data(input_v, output_v):
     # Convert results to a NumPy array for easier handling
     input_array = np.array(input_v)
@@ -363,28 +385,39 @@ def parallel_lookup(tasks, num_workers=1):
     save_data(input_v=input_v, output_v=output_v)
     return 
 
-if __name__ == '__main__':
+def test():
     # lala = process_point(0.5, -0.5, 0.0, 1.5)
-    # # 0.7064577720614232
-    # print(lala)
-    # # print(gan)
-    # draw_anime(True)
-    # exit()
+    input_array = np.load('input_array_16.npy')
+    output_array = np.load('output_array_16.npy')
+
+    indi = 13000
     
+    print(input_array.shape)
+    print(output_array.shape)
+    print('=============================================')
+    print("q1, u0, u1, u0_des: ")
+    print(input_array[indi,:])
+    print("phi:")
+    print(output_array[indi])
+    print()
+    
+    lala1 = input_array[indi,:]
+    lala2 = output_array[indi]
+    state, U = process_point(lala1[0], lala1[1], lala1[2], lala2)
+    
+    print('=============================================')
+    print('u0_des:')
+    print(lala1[3])
+    print('u0_real:')
+    print(state[3])
+    # print(lala_end)
+    
+    # draw_anime(True)
+    exit()
+    
+if __name__ == '__main__':
+    test()
     start_time = time.time()
-    output_values_vector = parallel_lookup(tasks, num_workers=23)  # Adjust num_workers as needed
+    output_values_vector = parallel_lookup(tasks, num_workers=1)  # Adjust num_workers as needed
     end_time = time.time()
     print('TIME USED: ',end_time-start_time)
-
-
-# for i, A in enumerate(q1_vals):
-#     for j, B in enumerate(u0_vals):
-#         for k, C in enumerate(u1_vals):
-#             for l, D in enumerate(U_vals):
-#                 print(i, j, k, l)
-#                 success, value = P(A, B, C, D)
-#                 if success:
-#                     output_values_vector.append(value)
-                    
-#                 # output_values[i, j, k, l] = value
-#     print('=============================================')
