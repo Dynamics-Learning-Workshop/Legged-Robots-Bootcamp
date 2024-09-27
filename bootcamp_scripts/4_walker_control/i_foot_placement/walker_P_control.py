@@ -232,10 +232,10 @@ def draw_anime(success):
     print('=======')
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "walker_control"
+        save_name = "walker_p_control"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "walker_control_" + "_failed"
+        save_name = "walker_p_control_" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
@@ -250,7 +250,7 @@ def draw_anime(success):
         mission="Walker Control", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
