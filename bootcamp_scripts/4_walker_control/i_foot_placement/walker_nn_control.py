@@ -287,10 +287,10 @@ def draw_anime(success):
             foot_on_ground_now_all[::sample_factor]
         ], 
         ms=1000 * t_step * sample_factor,
-        mission="Walker Control (PCA)", 
+        mission="Walker Control (NN)", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()

@@ -318,7 +318,7 @@ class Integrator(RobotUtils):
     
         ani = FuncAnimation(self.fig, self.update, frames=len(t), interval=ms, blit=True)
         if save:
-            ani.save('./viz/' + save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
+            ani.save( save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
             
         plt.title(mission)
         plt.show()
