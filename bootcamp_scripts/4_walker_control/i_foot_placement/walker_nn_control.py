@@ -110,7 +110,7 @@ class NeuralNetwork(nn.Module):
 model = NeuralNetwork()
 
 # Load the trained model's weights
-model.load_state_dict(torch.load('./data_n_model/neural_network_model.pth'))
+model.load_state_dict(torch.load('./data_n_model/neural_network_model.pth', map_location=torch.device('cpu')))
 
 # Load the input array
 input_array = np.load('./data_n_model/input_array_16.npy')

@@ -4,7 +4,11 @@ from scipy.interpolate import CubicSpline
 
 from sklearn.linear_model import LinearRegression
 
-exit()
+# print('lala')
+# exit()
+
+
+
 
 def cubicpolytraj(q_pts, t_pts, t):
     # Cubic spline interpolation for trajectory generation
@@ -38,6 +42,8 @@ def traj_polytraj():
         q, qdot, qddot, _ = cubicpolytraj(q_pts, t_pts, t)
     else:
         q, qdot, qddot, _ = quinticpolytraj(q_pts, t_pts, t)
+    
+    print(cubicpolytraj)
 
     # Plotting
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
