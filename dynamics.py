@@ -263,6 +263,35 @@ class Integrator(RobotUtils):
                 color='black', linewidth=2
             )
         
+        elif self.sim_object == 'spring_mass_damper':
+            # draw hopper
+            self.ball = plt.Circle((self.x_states[0][0], self.sim_info['ball_radius']), self.sim_info['ball_radius'], color='red', fill=True)
+
+            self.leg, = self.ax.plot(
+                [self.x_states[0][0], self.sim_info['wall']], 
+                [self.sim_info['ball_radius'], self.sim_info['ball_radius']], 
+                color='blue', 
+                linewidth=3)
+            # ball_x x_states[0]
+            
+            self.foot_circle = plt.Circle(
+                (self.sim_info['wall'], self.sim_info['ball_radius']), 
+                0.05, color='green', fill=True
+            )
+            
+            self.ax.add_patch(self.ball)
+            self.ax.add_patch(self.foot_circle)
+            
+            # draw ground
+            self.ax.plot(
+                [
+                    min(np.min(self.x_states[0][0]), self.sim_info['wall']) - 0.5, 
+                    max(np.max(self.x_states[0][0]), self.sim_info['wall']) + 0.5
+                ], [self.sim_info['ground'], self.sim_info['ground']], color='black', linewidth=2)
+            self.ax.plot(
+                [self.sim_info['wall'], self.sim_info['wall']], 
+                [1.5, -0.0], color='black', linewidth=2)
+            
         else:
             print("GOT ERROR CHOOSING OBJECT")
             exit()
@@ -289,7 +318,7 @@ class Integrator(RobotUtils):
     
         ani = FuncAnimation(self.fig, self.update, frames=len(t), interval=ms, blit=True)
         if save:
-            ani.save(save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
+            ani.save('./viz/' + save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
             
         plt.title(mission)
         plt.show()
@@ -377,6 +406,17 @@ class Integrator(RobotUtils):
                     [hinge[1], end_effector[1]]                    
                 )
             return (self.foot1, self.foot2, self.ball, self.leg1, self.leg2)
+        
+        elif self.sim_object == 'spring_mass_damper':
+            self.ball.center = (self.x_states[0][frame], self.sim_info['ball_radius'])
+            self.leg.set_data(
+                [self.x_states[0][frame], self.sim_info['wall']], 
+                [self.sim_info['ball_radius'], self.sim_info['ball_radius']]
+                )
+            # self.foot_circle.center = (self.x_states[2][frame], self.x_states[3][frame])
+
+            return (self.ball, self.leg,)
+        
         else:
             exit()
             
