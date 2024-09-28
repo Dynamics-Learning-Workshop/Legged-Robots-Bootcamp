@@ -126,7 +126,7 @@ def solve(
     
     return poly_coef
 
-
+# boundary conditions here, as the variable name suggest
 poly_coef = solve(ta_0_=0, ta_f_=1, tb_f_=3, qa_0_=0, qa_f_=0.5, qb_f_=1.0, qadot_0_=0, qadot_f_=0, qbdot_f_=0)
 
 print(poly_coef)

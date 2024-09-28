@@ -2,14 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 
-from sklearn.linear_model import LinearRegression
-
-# print('lala')
-# exit()
-
-
-
-
 def cubicpolytraj(q_pts, t_pts, t):
     # Cubic spline interpolation for trajectory generation
     cs = CubicSpline(t_pts, q_pts, bc_type=((1, 0.0), (1, 0.0)))  # Constrain velocity at endpoints
@@ -18,18 +10,7 @@ def cubicpolytraj(q_pts, t_pts, t):
     qddot = cs(t, 2)  # Acceleration (second derivative)
     return q, qdot, qddot, cs
 
-def quinticpolytraj(q_pts, t_pts, t):
-    # Generate a quintic polynomial trajectory (manually solving as scipy doesn't provide quintic splines)
-    # Construct the coefficients of the quintic polynomials for each segment
-    raise NotImplementedError("Quintic polynomial not implemented yet.")
-
 def traj_polytraj():
-    flag = 1  # input 1 for cubicpolytraj or other numeric for quinticpolytraj
-
-    if flag == 1:
-        string = 'Using cubicpolytraj'
-    else:
-        string = 'Using quinticpolytraj'
 
     t0 = 0
     tf = 8
@@ -38,12 +19,7 @@ def traj_polytraj():
 
     t = np.linspace(t0, tf, 10 * len(q_pts))  # Fine time vector for plotting
 
-    if flag == 1:
-        q, qdot, qddot, _ = cubicpolytraj(q_pts, t_pts, t)
-    else:
-        q, qdot, qddot, _ = quinticpolytraj(q_pts, t_pts, t)
-    
-    print(cubicpolytraj)
+    q, qdot, qddot, _ = cubicpolytraj(q_pts, t_pts, t)
 
     # Plotting
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
@@ -60,7 +36,7 @@ def traj_polytraj():
     axs[1, 0].set_ylabel('$\ddot{q}$', fontsize=12)
     axs[1, 0].set_xlabel('t', fontsize=12)
 
-    fig.suptitle(string, fontsize=14)
+    fig.suptitle('Cubic Spline', fontsize=14)
     plt.tight_layout()
     plt.show()
 

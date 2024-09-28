@@ -18,6 +18,8 @@ Please refer to [this](/bootcamp_scripts/1_hopper_dynamics/README.md#c-hopper).
 Please refer to [this](/bootcamp_scripts/3_passive_walker/d_walker/passive_walker.py).
 
 ### F. Trajectory
+- Derive the linear system to get the coefficient of the polynomials.
+- Refer to the scripts [here](/bootcamp_scripts/4_walker_control/f_trajectory/)
 
 ### G. Control
 

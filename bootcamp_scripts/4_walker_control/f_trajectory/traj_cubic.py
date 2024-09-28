@@ -62,6 +62,7 @@ def solve(t0_, tf_, q0_, qf_):
     
     return poly_coef
 
+# boundary conditions
 t0_ = 0
 tf_ = 1
 q0_ = 0
