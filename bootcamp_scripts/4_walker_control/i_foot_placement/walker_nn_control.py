@@ -290,7 +290,7 @@ def draw_anime(success):
         mission="Walker Control (NN)", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()

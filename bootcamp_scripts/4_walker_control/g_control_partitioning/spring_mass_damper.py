@@ -52,7 +52,7 @@ def draw_anime(success):
         mission="Spring-Mass-Damper System", 
         sim_object="spring_mass_damper",
         sim_info={'ground':ground, 'wall': wall, 'ball_radius':0.4},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
