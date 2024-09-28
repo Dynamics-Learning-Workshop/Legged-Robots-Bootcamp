@@ -263,6 +263,36 @@ class Integrator(RobotUtils):
                 color='black', linewidth=2
             )
         
+        elif self.sim_object == 'single_pendulum':
+            initial_state = self.x_states[0][0]
+            
+            fixation, end_effector = self.draw_single_pendulum(x=initial_state)
+            
+            # draw points
+            self.foot1 = plt.Circle((fixation[0], fixation[1]), 0.05, color='green', fill=True)
+            self.ball = plt.Circle((end_effector[0], end_effector[1]), 0.05, color='green', fill=True)
+            self.ax.add_patch(self.foot1)
+            self.ax.add_patch(self.ball)
+            
+            # draw arms
+            self.leg1, = self.ax.plot(
+                [fixation[0], end_effector[0]], 
+                [fixation[1], end_effector[1]], 
+                color='cyan', 
+                linewidth=4)
+            
+            # draw plane cross
+            self.ax.plot(
+                [-2, 2], 
+                [0, 0], 
+                color='black', linewidth=2
+            )
+            self.ax.plot(
+                [0, 0], 
+                [-2, 2], 
+                color='black', linewidth=2
+            )
+        
         elif self.sim_object == 'spring_mass_damper':
             # draw hopper
             self.ball = plt.Circle((self.x_states[0][0], self.sim_info['ball_radius']), self.sim_info['ball_radius'], color='red', fill=True)
@@ -407,6 +437,19 @@ class Integrator(RobotUtils):
                 )
             return (self.foot1, self.foot2, self.ball, self.leg1, self.leg2)
         
+        elif self.sim_object == 'single_pendulum':
+            current_state = self.x_states[0][frame]
+            
+            fixation, end_effector = self.draw_single_pendulum(x=current_state)
+            self.foot1.center = (fixation[0], fixation[1])
+            self.ball.center = (end_effector[0], end_effector[1])
+            self.leg1.set_data(
+                    [fixation[0], end_effector[0]], 
+                    [fixation[1], end_effector[1]]                    
+                )
+            
+            return (self.foot1, self.ball, self.leg1,)
+        
         elif self.sim_object == 'spring_mass_damper':
             self.ball.center = (self.x_states[0][frame], self.sim_info['ball_radius'])
             self.leg.set_data(
@@ -473,4 +516,20 @@ class Integrator(RobotUtils):
         end_effector = T_B1_2_I @ end_effector_B1
         
         return fixation, hinge[0:2], end_effector[0:2]
+    
+    def draw_single_pendulum(self, x):
+        # draw the double pendulum in inertial frame {I}
+        # q = [q0, q1] (in inertial frame {I})
+        T_B1_2_I = self.homo2D(
+            psi=np.pi/2+x, 
+            trans=np.array([0,0])
+        )
+        
+        # foot on ground in {I}
+        fixation = np.array([0,0])
+        
+        # foot in air in {I}
+        end_effector = T_B1_2_I  @ np.array([self.sim_info['l1'], 0, 1])
+        
+        return fixation, end_effector[0:2]
         
