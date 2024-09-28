@@ -210,13 +210,13 @@ class Integrator(RobotUtils):
             min_x = np.min(self.x_states[2]) - 2
             max_x = np.max(self.x_states[2]) + 2
             
-            H_G_2_I = self.homo2D(
+            T_G_2_I = self.homo2D(
                 psi=-self.sim_info['slope_angle'], 
                 trans=np.zeros([2])
             )
             
-            min_xy_I = H_G_2_I @ np.array([min_x, self.sim_info['ground'], 1])
-            max_xy_I = H_G_2_I @ np.array([max_x, self.sim_info['ground'], 1])
+            min_xy_I = T_G_2_I @ np.array([min_x, self.sim_info['ground'], 1])
+            max_xy_I = T_G_2_I @ np.array([max_x, self.sim_info['ground'], 1])
             
             self.ax.plot(
                 [min_xy_I[0], max_xy_I[0]], 
@@ -383,41 +383,41 @@ class Integrator(RobotUtils):
     def draw_walker(self, x):
         # draw the walker in inertial frame {I}
         # q = [q0, q1, x0, x1] (in ground frame {G})
-        H_G_2_I = self.homo2D(
+        T_G_2_I = self.homo2D(
             psi=-self.sim_info['slope_angle'], 
             trans=np.zeros([2])
         )
-        H_B1_2_G = self.homo2D(
+        T_B1_2_G = self.homo2D(
             psi=np.pi/2+x[0], 
             trans=np.array([x[2],0])
         )
-        H_B2_2_B1 = self.homo2D(
+        T_B2_2_B1 = self.homo2D(
             psi=np.pi + x[1], 
             trans=np.array([self.sim_info['leg_l'],0])
         )
         
         # foot on ground in {I}
-        foot_on_ground = H_G_2_I @ np.array([x[2], 0, 1])
+        foot_on_ground = T_G_2_I @ np.array([x[2], 0, 1])
         
         # hip in {I}
-        hip_G = H_B1_2_G @ np.array([self.sim_info['leg_l'], 0, 1])
-        hip = H_G_2_I @ hip_G
+        hip_G = T_B1_2_G @ np.array([self.sim_info['leg_l'], 0, 1])
+        hip = T_G_2_I @ hip_G
         
         # foot in air in {I}
-        foot_in_air_B1 = H_B2_2_B1 @ np.array([self.sim_info['leg_l'], 0, 1])
-        foot_in_air_G = H_B1_2_G @ foot_in_air_B1
-        foot_in_air = H_G_2_I @ foot_in_air_G
+        foot_in_air_B1 = T_B2_2_B1 @ np.array([self.sim_info['leg_l'], 0, 1])
+        foot_in_air_G = T_B1_2_G @ foot_in_air_B1
+        foot_in_air = T_G_2_I @ foot_in_air_G
         
         return foot_on_ground[0:2], hip[0:2], foot_in_air[0:2]
     
     def draw_double_pendulum(self, x):
         # draw the double pendulum in inertial frame {I}
         # q = [q0, q1] (in inertial frame {I})
-        H_B1_2_I = self.homo2D(
+        T_B1_2_I = self.homo2D(
             psi=np.pi/2+x[0], 
             trans=np.array([0,0])
         )
-        H_B2_2_B1 = self.homo2D(
+        T_B2_2_B1 = self.homo2D(
             psi=np.pi + x[1], 
             trans=np.array([self.sim_info['l1'],0])
         )
@@ -426,11 +426,11 @@ class Integrator(RobotUtils):
         fixation = np.array([0,0])
         
         # hip in {I}
-        hinge = H_B1_2_I @ np.array([self.sim_info['l1'], 0, 1])
+        hinge = T_B1_2_I @ np.array([self.sim_info['l1'], 0, 1])
         
         # foot in air in {I}
-        end_effector_B1 = H_B2_2_B1 @ np.array([self.sim_info['l2'], 0, 1])
-        end_effector = H_B1_2_I @ end_effector_B1
+        end_effector_B1 = T_B2_2_B1 @ np.array([self.sim_info['l2'], 0, 1])
+        end_effector = T_B1_2_I @ end_effector_B1
         
         return fixation, hinge[0:2], end_effector[0:2]
         

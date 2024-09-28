@@ -60,14 +60,14 @@ event_thres = 1e-2
 sample_factor = 10
 
 # set controller prequisites
-def get_desired_q0dot(xdot_H_desired):
+def get_desired_q0dot(xdot_hip_desired):
     l = leg_l
-    # get the desired q0dot from xdot_H_desired
+    # get the desired q0dot from xdot_hip_desired
     # from Jacobian, we know -l cos(theta0) * q0dot = xdot_H
     # -> q0dot = -l * xdot_H / cos(theta0)
     # -> q0dot = -l * xdot_H
-    return -l * xdot_H_desired
-q0dot_des = get_desired_q0dot(xdot_H_desired=1.5)
+    return -l * xdot_hip_desired
+q0dot_des = get_desired_q0dot(xdot_hip_desired=1.5)
 print(q0dot_des)
 print("==================")
 control_set = False
@@ -196,26 +196,26 @@ def check_sys(x1):
         draw_anime(False)
 
 def get_foot_in_air(x, x_current_stance):
-    H_B1_2_G = util().homo2D(
+    T_B1_2_G = util().homo2D(
         psi=np.pi/2+x[0], 
         trans=np.array([x_current_stance[0],0])
     )
-    H_B2_2_B1 = util().homo2D(
+    T_B2_2_B1 = util().homo2D(
         psi=np.pi + x[1], 
         trans=np.array([leg_l,0])
     )
-    foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([leg_l, 0, 1]))
-    foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
+    foot_in_air_B1 = np.dot(T_B2_2_B1, np.array([leg_l, 0, 1]))
+    foot_in_air_G = np.dot(T_B1_2_G, foot_in_air_B1)
     
     return foot_in_air_G[0:2]
 
 def get_hip(x, x_current_stance):
-    H_B1_2_G = util().homo2D(
+    T_B1_2_G = util().homo2D(
         psi=np.pi/2+x[0], 
         trans=np.array([x_current_stance[0],0])
     )
     
-    hip_G = H_B1_2_G @ np.array([leg_l, 0, 1])
+    hip_G = T_B1_2_G @ np.array([leg_l, 0, 1])
     
     return hip_G[0:2]
 

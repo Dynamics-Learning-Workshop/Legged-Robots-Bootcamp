@@ -27,22 +27,22 @@ R_B2_2_B1 = sp.Matrix([[sp.cos(-sp.pi + theta1), -sp.sin(-sp.pi + theta1)],
 CP_I = sp.Matrix([x, y]) # contact point in ground frame {I}
 HP_B1 = sp.Matrix([l1, 0]) # hinge point in body frame 1 {B1}
 
-H_B1_2_I = sp.Matrix([[R_B1_2_I, CP_I], [0, 0, 1]])
-H_B2_2_B1 = sp.Matrix([[R_B2_2_B1, HP_B1], [0, 0, 1]])
+T_B1_2_I = sp.Matrix([[R_B1_2_I, CP_I], [0, 0, 1]])
+T_B2_2_B1 = sp.Matrix([[R_B2_2_B1, HP_B1], [0, 0, 1]])
 
 # Position of hinge, CoM of legs, and foot in {I}
-R_H = H_B1_2_I @ sp.Matrix([l1, 0, 1]) # hinge
+R_H = T_B1_2_I @ sp.Matrix([l1, 0, 1]) # hinge
 x_H, y_H = R_H[0], R_H[1]
 
-R_G1 = H_B1_2_I @ sp.Matrix([l1/2, 0, 1]) # CoM of leg 1
+R_G1 = T_B1_2_I @ sp.Matrix([l1/2, 0, 1]) # CoM of leg 1
 R_G1 = sp.simplify(R_G1)
 x_G1, y_G1 = R_G1[0], R_G1[1]
 
-R_G2 = H_B1_2_I @ H_B2_2_B1 @ sp.Matrix([l2/2, 0, 1]) # CoM of leg 2
+R_G2 = T_B1_2_I @ T_B2_2_B1 @ sp.Matrix([l2/2, 0, 1]) # CoM of leg 2
 R_G2 = sp.simplify(R_G2)
 x_G2, y_G2 = R_G2[0], R_G2[1]
 
-R_C2 = H_B1_2_I @ H_B2_2_B1 @ sp.Matrix([l2, 0, 1]) # foot of air leg
+R_C2 = T_B1_2_I @ T_B2_2_B1 @ sp.Matrix([l2, 0, 1]) # foot of air leg
 R_C2 = sp.simplify(R_C2)
 x_C2, y_C2 = R_C2[0], R_C2[1]
 

@@ -168,26 +168,26 @@ def check_sys(x1):
         return False
 
 def get_foot_in_air(x, x_current_stance):
-    H_B1_2_G = util().homo2D(
+    T_B1_2_G = util().homo2D(
         psi=np.pi/2+x[0], 
         trans=np.array([x_current_stance[0],0])
     )
-    H_B2_2_B1 = util().homo2D(
+    T_B2_2_B1 = util().homo2D(
         psi=np.pi + x[1], 
         trans=np.array([leg_l,0])
     )
-    foot_in_air_B1 = np.dot(H_B2_2_B1, np.array([leg_l, 0, 1]))
-    foot_in_air_G = np.dot(H_B1_2_G, foot_in_air_B1)
+    foot_in_air_B1 = np.dot(T_B2_2_B1, np.array([leg_l, 0, 1]))
+    foot_in_air_G = np.dot(T_B1_2_G, foot_in_air_B1)
     
     return foot_in_air_G[0:2]
 
 def get_hip(x, x_current_stance):
-    H_B1_2_G = util().homo2D(
+    T_B1_2_G = util().homo2D(
         psi=np.pi/2+x[0], 
         trans=np.array([x_current_stance[0],0])
     )
     
-    hip_G = H_B1_2_G @ np.array([leg_l, 0, 1])
+    hip_G = T_B1_2_G @ np.array([leg_l, 0, 1])
     
     return hip_G[0:2]
 
