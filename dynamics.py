@@ -40,11 +40,14 @@ class RobotUtils:
     
         return R_z @ R_y @ R_x
     
-    def dg2rad(angle):
-        return angle / 180 * np.pi
-    
-    def rad2dg(angle):
-        return angle / np.pi * 180
+    def rad_2_pi_range(self, angle):
+        while np.abs(angle) > np.pi:
+            if angle > 0:
+                angle = angle - 2*np.pi
+            else:
+                angle = angle + 2*np.pi
+            
+        return angle
 
 class Integrator(RobotUtils):
     def __init__(self):

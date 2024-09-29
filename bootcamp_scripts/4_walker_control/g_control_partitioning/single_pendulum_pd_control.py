@@ -20,17 +20,23 @@ q0_all_rk4 = []
 t_step = 1e-3
 t_all = []
 
-q0=-0.001
+q0=np.pi + 2* np.pi + 0.2
 u0=-0.0
 x_rk4 = np.array([q0, u0])
+
+q0_ref = -np.pi/2
+Kp = 100
+Kd = 50
+
+event_thres = 1e-2
 
 def draw_anime(success):
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "single_pendulum"
+        save_name = "single_pendulum_pd_control"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "single_pendulum" + "_failed"
+        save_name = "single_pendulum_pd_control" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
@@ -51,10 +57,17 @@ def f_single_pendulum(x):
     theta0 = x[0]
     omega0 = x[1]
     
+    
+    theta0 = util().rad_2_pi_range(theta0)
+    
+    tau = -Kp * (theta0 - q0_ref) - Kd * omega0
+    # tau = 1.2 * 5
+    # print(theta0 - q0_ref)
+    
     A = 1.0*I1 + 0.25*l1**2*m1
     b = -g*l1*m1*np.sin(theta0)/2
     
-    alpha0 = -b/A
+    alpha0 = (-b + tau)/A
     
     return np.array([
         omega0, 
@@ -72,8 +85,10 @@ while True:
     t_all.append(t)
 
     x_rk4 = x_rk4_new
+    theta0_current = util().rad_2_pi_range(x_rk4[0])
     
-    if t > t_lim:
+    # print(np.abs(theta0_current - q0_ref))
+    if np.abs(theta0_current - q0_ref) < event_thres or t > t_lim:
         break
     
 draw_anime(True)
