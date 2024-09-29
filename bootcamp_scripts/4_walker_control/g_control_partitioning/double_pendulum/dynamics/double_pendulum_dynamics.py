@@ -9,6 +9,8 @@ g = sp.symbols('g', real=True)  # Slope of ramp, gravity
 theta0, theta1 = sp.symbols('theta0 theta1', real=True)  # Angles
 omega0, omega1 = sp.symbols('omega0 omega1', real=True)  # Angular velocity
 alpha0, alpha1 = sp.symbols('alpha0 alpha1', real=True)  # Angular acceleration
+theta0_n, theta1_n = sp.symbols('theta0_n theta1_n', real=True)  # Angles before heelstrike
+omega0_n, omega1_n = sp.symbols('omega0_n omega1_n', real=True)  # Velocities before heelstrike
 x, y = sp.symbols('x y', real=True)  # Position of the stance leg in ground frame {I}
 vx, vy = sp.symbols('vx vy', real=True)  # Velocity of the stance leg in ground frame {I}
 ax, ay = sp.symbols('ax ay', real=True)  # Acceleration of the stance leg in ground frame {I}
