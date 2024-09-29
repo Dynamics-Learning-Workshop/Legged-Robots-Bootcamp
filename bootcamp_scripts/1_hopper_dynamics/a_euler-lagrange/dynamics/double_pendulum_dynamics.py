@@ -2,7 +2,7 @@
 import sympy as sp
 
 # Define symbols
-M, m1, m2, I1, I2 = sp.symbols('M m1 m2 I1 I2', real=True)  
+m1, m2, I1, I2 = sp.symbols('m1 m2 I1 I2', real=True)  
 # Mass hinge, leg, Inertia
 l1, l2 = sp.symbols('l1, l2', real=True)  # Distances
 g = sp.symbols('g', real=True)  # Slope of ramp, gravity
@@ -59,8 +59,8 @@ Y_G2 = R_G2[1]
 print("HEIGHT IN {I} ACQUIRED")
 
 # Kinetic and potential energy
-T = 0.5 * sp.simplify(m1 * v_G1.dot(v_G1) + m2 * v_G2.dot(v_G2) + M * v_H.dot(v_H) + I1 * omega0**2 + I2 * (omega0 + omega1)**2)
-V = sp.simplify(m1 * g * Y_G1 + m2 * g * Y_G2 + M * g * Y_H)
+T = 0.5 * sp.simplify(m1 * v_G1.dot(v_G1) + m2 * v_G2.dot(v_G2) + I1 * omega0**2 + I2 * (omega0 + omega1)**2)
+V = sp.simplify(m1 * g * Y_G1 + m2 * g * Y_G2)
 L = T - V
 print("LAGRANGIAN ACQUIRED")
 
