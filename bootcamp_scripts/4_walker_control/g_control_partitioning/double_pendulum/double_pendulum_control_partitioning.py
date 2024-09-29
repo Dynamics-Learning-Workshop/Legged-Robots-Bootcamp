@@ -37,7 +37,7 @@ q1_ref = 0
 
 q_ref = np.array([q0_ref, q1_ref])
 
-Kp = 1 * np.identity(2)
+Kp = 100 * np.identity(2)
 Kd = 2 * np.sqrt(Kp)
 
 event_thres = 1e-2

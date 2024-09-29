@@ -53,7 +53,7 @@ def draw_anime(success):
         mission="Swing", 
         sim_object="single_pendulum",
         sim_info={'l1': l1},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
@@ -113,7 +113,7 @@ while True:
     if np.abs(theta0_current - q0_ref) < event_thres or t > t_lim:
         break
     
-# draw_anime(True)
+draw_anime(True)
 
 print('SYSTEM INTEGRATION SUCCEEDED...')
 
