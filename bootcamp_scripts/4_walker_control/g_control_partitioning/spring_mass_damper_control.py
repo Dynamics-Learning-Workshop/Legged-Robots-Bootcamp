@@ -31,12 +31,14 @@ sample_factor = 10
 
 Kp = 1
 
-def f_spring_mass_damper(x):
+def force_control(x):
     Kd = -c + 2 * np.sqrt(m * (k + Kp))
-    u = Kp * (-x[0]) + Kd * (-x[1])
+    return Kp * (-x[0]) + Kd * (-x[1])
+
+def f_spring_mass_damper(x,u):    
     return np.array([
         x[1], 
-        -c / m * x[1] - k / m * x[0] + u
+        (-c * x[1] - k * x[0] + u) / m
         ])
 
 def draw_anime(success):
@@ -62,8 +64,8 @@ def draw_anime(success):
     exit()
 
 while True:
-
-    x_new_rk4 = Integrator().rk4(f_spring_mass_damper, x=x_rk4, h=t_step)
+    u = force_control(x_rk4)
+    x_new_rk4 = Integrator().rk4_ctrl(f_spring_mass_damper, x=x_rk4, u=u, h=t_step)
     x0_all_rk4.append(x_new_rk4[0])
     
     dx0_all_rk4.append(x_new_rk4[1])

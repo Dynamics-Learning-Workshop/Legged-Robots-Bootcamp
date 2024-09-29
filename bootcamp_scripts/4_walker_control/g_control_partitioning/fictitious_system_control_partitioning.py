@@ -53,13 +53,19 @@ K_hat = K + K_d
 x0_d = 0.5
 x1_d = 0.1
 
-def f_fictitious(x):
+def tau_control(x):
     x_d = np.array([x0_d, x1_d])
     q_d = np.array([x_d[0], x_d[1]])
     q = np.array([x[0], x[1]])
     qdot = np.array([x[2], x[3]])
     
     tau = M_hat @ (-Kp @ (q - q_d) - Kd @ qdot) + C_hat @ qdot + K_hat @ q
+    return tau
+
+def f_fictitious(x, tau):
+    x_d = np.array([x0_d, x1_d])
+    q = np.array([x[0], x[1]])
+    qdot = np.array([x[2], x[3]])
     
     b = tau - C @ qdot - K @ q
     A = M
@@ -74,8 +80,8 @@ def f_fictitious(x):
         ])
 
 while True:
-
-    x_new_rk4 = Integrator().rk4(f_fictitious, x=x_rk4, h=t_step)
+    tau = tau_control(x_rk4)
+    x_new_rk4 = Integrator().rk4_ctrl(f_fictitious, x=x_rk4, u=tau, h=t_step)
     
     x0_all_rk4.append(x_new_rk4[0])
     x1_all_rk4.append(x_new_rk4[1])

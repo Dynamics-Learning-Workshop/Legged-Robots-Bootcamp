@@ -1,6 +1,7 @@
 import sys
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
@@ -30,7 +31,12 @@ Kd = 50
 
 event_thres = 1e-2
 
+u_all = []
+
 def draw_anime(success):
+    print('INTEGRATION END')
+    print('TIME NOW: ', t)
+    print()
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
         save_name = "single_pendulum_pd_control"
@@ -52,22 +58,35 @@ def draw_anime(success):
     )
     exit()
 
-def f_single_pendulum(x):
-    
-    theta0 = x[0]
-    omega0 = x[1]
-    
+def generate_noise():
+    mean = 0
+    std_dev = 0.1
+    print(np.random.normal(mean, std_dev, 1)[0])
+    return np.random.normal(mean, std_dev, 1)[0]
+
+def tau_control(x):
+    theta0 = x[0] + generate_noise()
+    omega0 = x[1] + generate_noise()
     
     theta0 = util().rad_2_pi_range(theta0)
     
     tau = -Kp * (theta0 - q0_ref) - Kd * omega0
-    # tau = 1.2 * 5
-    # print(theta0 - q0_ref)
+    return tau
+
+
+def f_single_pendulum(x, tau):
     
-    A = 1.0*I1 + 0.25*l1**2*m1
+    theta0 = x[0] + generate_noise()
+    omega0 = x[1] + generate_noise()
+    
+    theta0 = util().rad_2_pi_range(theta0)
+    
+    # M * qddot + b = tau
+    
+    M = 1.0*I1 + 0.25*l1**2*m1
     b = -g*l1*m1*np.sin(theta0)/2
     
-    alpha0 = (-b + tau)/A
+    alpha0 = (-b + tau)/M
     
     return np.array([
         omega0, 
@@ -77,11 +96,14 @@ def f_single_pendulum(x):
 t_lim = 10.0
 
 while True:
-    x_rk4_new = inte().rk4(f_single_pendulum, x=x_rk4, h=t_step)
+    tau = tau_control(x_rk4)
+    x_rk4_new = inte().rk4_ctrl(f_single_pendulum, x=x_rk4, u=tau, h=t_step)
             
     q0_all_rk4.append(x_rk4_new[0])
     
     t = t + t_step
+    
+    u_all.append(tau)
     t_all.append(t)
 
     x_rk4 = x_rk4_new
@@ -92,3 +114,19 @@ while True:
         break
     
 draw_anime(True)
+
+print('SYSTEM INTEGRATION SUCCEEDED...')
+
+# Create a new figure with specified size
+plt.figure(figsize=(8, 10))  # Adjust size to accommodate both subplots
+
+plt.subplot(1, 1, 1)  # 2 rows, 1 column, 1st subplot
+plt.plot(t_all, u_all)
+plt.xlabel('t')
+plt.ylabel('u')
+plt.title('t vs u')
+plt.grid(True)
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
+plt.show()
