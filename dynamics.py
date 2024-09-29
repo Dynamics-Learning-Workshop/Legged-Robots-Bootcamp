@@ -500,11 +500,11 @@ class Integrator(RobotUtils):
         # draw the double pendulum in inertial frame {I}
         # q = [q0, q1] (in inertial frame {I})
         T_B1_2_I = self.homo2D(
-            psi=np.pi/2+x[0], 
+            psi=x[0], 
             trans=np.array([0,0])
         )
         T_B2_2_B1 = self.homo2D(
-            psi=np.pi + x[1], 
+            psi=x[1], 
             trans=np.array([self.sim_info['l1'],0])
         )
         
@@ -524,7 +524,7 @@ class Integrator(RobotUtils):
         # draw the double pendulum in inertial frame {I}
         # q = [q0, q1] (in inertial frame {I})
         T_B1_2_I = self.homo2D(
-            psi=np.pi/2+x, 
+            psi=x, 
             trans=np.array([0,0])
         )
         

@@ -21,11 +21,11 @@ q0_all_rk4 = []
 t_step = 1e-3
 t_all = []
 
-q0=np.pi + 2* np.pi + 0.2
+q0=-np.pi/2
 u0=-0.0
 x_rk4 = np.array([q0, u0])
 
-q0_ref = -np.pi/2
+q0_ref = np.pi/2
 Kp = 100
 Kd = 50
 
@@ -61,7 +61,7 @@ def draw_anime(success):
 def generate_noise():
     mean = 0
     std_dev = 0.1
-    print(np.random.normal(mean, std_dev, 1)[0])
+    
     return np.random.normal(mean, std_dev, 1)[0]
 
 def tau_control(x):
@@ -84,7 +84,7 @@ def f_single_pendulum(x, tau):
     # M * qddot + b = tau
     
     M = 1.0*I1 + 0.25*l1**2*m1
-    b = -g*l1*m1*np.sin(theta0)/2
+    b = g*l1*m1*np.cos(theta0)/2
     
     alpha0 = (-b + tau)/M
     
@@ -113,7 +113,7 @@ while True:
     if np.abs(theta0_current - q0_ref) < event_thres or t > t_lim:
         break
     
-draw_anime(True)
+# draw_anime(True)
 
 print('SYSTEM INTEGRATION SUCCEEDED...')
 

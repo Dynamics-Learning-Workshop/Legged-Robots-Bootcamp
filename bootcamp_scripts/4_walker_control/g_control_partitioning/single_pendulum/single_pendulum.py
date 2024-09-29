@@ -54,7 +54,7 @@ def f_single_pendulum(x):
     omega0 = x[1]
     
     A = 1.0*I1 + 0.25*l1**2*m1
-    b = -g*l1*m1*np.sin(theta0)/2
+    b = g*l1*m1*np.cos(theta0)/2
     
     alpha0 = -b/A
     

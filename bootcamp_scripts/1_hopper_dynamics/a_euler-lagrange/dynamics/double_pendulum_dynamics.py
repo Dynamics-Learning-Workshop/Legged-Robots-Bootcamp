@@ -18,10 +18,10 @@ q = [x, y, theta0, theta1]
 qdot = [vx, vy, omega0, omega1]
 
 # Rotation matrices
-R_B1_2_I = sp.Matrix([[sp.cos(sp.pi/2 + theta0), -sp.sin(sp.pi/2 + theta0)],
-                 [sp.sin(sp.pi/2 + theta0), sp.cos(sp.pi/2 + theta0)]])
-R_B2_2_B1 = sp.Matrix([[sp.cos(-sp.pi + theta1), -sp.sin(-sp.pi + theta1)],
-                 [sp.sin(-sp.pi + theta1), sp.cos(-sp.pi + theta1)]])
+R_B1_2_I = sp.Matrix([[sp.cos(theta0), -sp.sin(theta0)],
+                 [sp.sin(theta0), sp.cos(theta0)]])
+R_B2_2_B1 = sp.Matrix([[sp.cos(theta1), -sp.sin(theta1)],
+                 [sp.sin(theta1), sp.cos(theta1)]])
 CP_I = sp.Matrix([x, y]) # contact point in ground frame {I}
 HP_B1 = sp.Matrix([l1, 0]) # hinge point in body frame 1 {B1}
 
