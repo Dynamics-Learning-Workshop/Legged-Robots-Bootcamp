@@ -2,15 +2,13 @@
 import sympy as sp
 
 # Define symbols
-M, m1, m2, I1, I2 = sp.symbols('M m1 m2 I1 I2', real=True)  
+m1, m2, I1, I2 = sp.symbols('m1 m2 I1 I2', real=True)  
 # Mass hinge, leg, Inertia
 l1, l2 = sp.symbols('l1, l2', real=True)  # Distances
 g = sp.symbols('g', real=True)  # Slope of ramp, gravity
 theta0, theta1 = sp.symbols('theta0 theta1', real=True)  # Angles
 omega0, omega1 = sp.symbols('omega0 omega1', real=True)  # Angular velocity
 alpha0, alpha1 = sp.symbols('alpha0 alpha1', real=True)  # Angular acceleration
-theta0_n, theta1_n = sp.symbols('theta0_n theta1_n', real=True)  # Angles before heelstrike
-omega0_n, omega1_n = sp.symbols('omega0_n omega1_n', real=True)  # Velocities before heelstrike
 x, y = sp.symbols('x y', real=True)  # Position of the stance leg in ground frame {I}
 vx, vy = sp.symbols('vx vy', real=True)  # Velocity of the stance leg in ground frame {I}
 ax, ay = sp.symbols('ax ay', real=True)  # Acceleration of the stance leg in ground frame {I}
@@ -20,10 +18,10 @@ q = [x, y, theta0, theta1]
 qdot = [vx, vy, omega0, omega1]
 
 # Rotation matrices
-R_B1_2_I = sp.Matrix([[sp.cos(sp.pi/2 + theta0), -sp.sin(sp.pi/2 + theta0)],
-                 [sp.sin(sp.pi/2 + theta0), sp.cos(sp.pi/2 + theta0)]])
-R_B2_2_B1 = sp.Matrix([[sp.cos(-sp.pi + theta1), -sp.sin(-sp.pi + theta1)],
-                 [sp.sin(-sp.pi + theta1), sp.cos(-sp.pi + theta1)]])
+R_B1_2_I = sp.Matrix([[sp.cos(theta0), -sp.sin(theta0)],
+                 [sp.sin(theta0), sp.cos(theta0)]])
+R_B2_2_B1 = sp.Matrix([[sp.cos(theta1), -sp.sin(theta1)],
+                 [sp.sin(theta1), sp.cos(theta1)]])
 CP_I = sp.Matrix([x, y]) # contact point in ground frame {I}
 HP_B1 = sp.Matrix([l1, 0]) # hinge point in body frame 1 {B1}
 
@@ -61,8 +59,8 @@ Y_G2 = R_G2[1]
 print("HEIGHT IN {I} ACQUIRED")
 
 # Kinetic and potential energy
-T = 0.5 * sp.simplify(m1 * v_G1.dot(v_G1) + m2 * v_G2.dot(v_G2) + M * v_H.dot(v_H) + I1 * omega0**2 + I2 * (omega0 + omega1)**2)
-V = sp.simplify(m1 * g * Y_G1 + m2 * g * Y_G2 + M * g * Y_H)
+T = 0.5 * sp.simplify(m1 * v_G1.dot(v_G1) + m2 * v_G2.dot(v_G2) + I1 * omega0**2 + I2 * (omega0 + omega1)**2)
+V = sp.simplify(m1 * g * Y_G1 + m2 * g * Y_G2)
 L = T - V
 print("LAGRANGIAN ACQUIRED")
 
@@ -85,6 +83,7 @@ M_ss = EOM_vec.jacobian(qddot)
 # d/dt dL/dqdot - dL/dq = tau
 # M(q) q'' + B(q,q') = tau
 # use Jacobian to separate the M(q) from EOM
+# The linear dependence in EoM allows the Jacobian to extract the mass matrix
 
 b_ss = sp.simplify(EOM_vec.subs([(ax,0), (ay,0), (alpha0,0), (alpha1,0)]))
 # M(q) q'' + B(q,q') = tau

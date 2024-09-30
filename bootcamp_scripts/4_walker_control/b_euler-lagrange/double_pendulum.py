@@ -9,7 +9,6 @@ l1 = 1.0
 l2 = 0.5
 m1 = 1.0
 m2 = 0.5
-M = 1.0
 I1 = 0.02
 I2 = 0.02 / 8
 
@@ -23,7 +22,7 @@ q1_all_rk4 = []
 t_step = 1e-3
 t_all = []
 
-q0=0.1
+q0=np.pi/2+0.01
 q1=0.0
 u0=-0.0
 u1=-0.0
@@ -59,13 +58,13 @@ def f_double_pendulum(x):
     omega0 = x[2]
     omega1 = x[3]
     
-    M00 =  1.0*I1 + 1.0*I2 + 1.0*M*l1**2 + 0.25*l1**2*m1 + 1.0*l1**2*m2 - 1.0*l1*l2*m2*np.cos(theta1) + 0.25*l2**2*m2
-    M01 =  1.0*I2 - 0.5*l1*l2*m2*np.cos(theta1) + 0.25*l2**2*m2
-    M10 =  1.0*I2 - 0.5*l1*l2*m2*np.cos(theta1) + 0.25*l2**2*m2
+    M00 =  1.0*I1 + 1.0*I2 + 0.25*l1**2*m1 + 1.0*l1**2*m2 + 1.0*l1*l2*m2*np.cos(theta1) + 0.25*l2**2*m2
+    M01 =  1.0*I2 + 0.5*l1*l2*m2*np.cos(theta1) + 0.25*l2**2*m2
+    M10 =  1.0*I2 + 0.5*l1*l2*m2*np.cos(theta1) + 0.25*l2**2*m2
     M11 =  1.0*I2 + 0.25*l2**2*m2
     
-    b_0 =  -1.0*M*g*l1*np.sin(theta0) - 0.5*g*l1*m1*np.sin(theta0) - 1.0*g*l1*m2*np.sin(theta0) + 0.5*g*l2*m2*np.sin(theta0 + theta1) + 1.0*l1*l2*m2*omega0*omega1*np.sin(theta1) + 0.5*l1*l2*m2*omega1**2*np.sin(theta1)
-    b_1 =  0.5*l2*m2*(g*np.sin(theta0 + theta1) - l1*omega0**2*np.sin(theta1))
+    b_0 =  0.5*g*l1*m1*np.cos(theta0) + 1.0*g*l1*m2*np.cos(theta0) + 0.5*g*l2*m2*np.cos(theta0 + theta1) - 1.0*l1*l2*m2*omega0*omega1*np.sin(theta1) - 0.5*l1*l2*m2*omega1**2*np.sin(theta1)
+    b_1 =  0.5*l2*m2*(g*np.cos(theta0 + theta1) + l1*omega0**2*np.sin(theta1))
     
     A = np.array([[M00, M01],[M10, M11]])
     b = np.array([-b_0, -b_1])

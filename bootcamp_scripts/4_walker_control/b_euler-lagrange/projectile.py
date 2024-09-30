@@ -80,7 +80,7 @@ Integrator().anime(
     sim_object="ball",
     sim_info={'ground':ground},
     save=False,
-    save_name='bounce'
+    save_name='projectile'
 )
 
 exit()

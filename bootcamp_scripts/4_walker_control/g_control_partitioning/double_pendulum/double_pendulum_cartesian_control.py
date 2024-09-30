@@ -44,6 +44,28 @@ tf_p0 = 1.5
 t0_p1 = 1.5
 tf_p1 = 3.0
 
+def cartesian_traj_setting():
+    A = 0.5
+    B = A
+    a = 2
+    b = 1
+    r_x0 = 1
+    r_y0 = 0
+
+    t = np.arange(0,2,1e-3)
+    tf = 2
+
+    r_x =  A*np.sin(2*np.pi*a*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3)) + r_x0
+    r_y =  B*np.cos(2*np.pi*b*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3)) + r_y0
+    r_xdot =  2*np.pi*A*a*(30*t**4/tf**5 - 60*t**3/tf**4 + 30*t**2/tf**3)*np.cos(2*np.pi*a*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3))
+    r_ydot =  -2*np.pi*B*b*(30*t**4/tf**5 - 60*t**3/tf**4 + 30*t**2/tf**3)*np.sin(2*np.pi*b*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3))
+    r_xddot =  -4*np.pi**2*A*a**2*(30*t**4/tf**5 - 60*t**3/tf**4 + 30*t**2/tf**3)**2*np.sin(2*np.pi*a*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3)) + 2*np.pi*A*a*(120*t**3/tf**5 - 180*t**2/tf**4 + 60*t/tf**3)*np.cos(2*np.pi*a*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3))
+    r_yddot =  -4*np.pi**2*B*b**2*(30*t**4/tf**5 - 60*t**3/tf**4 + 30*t**2/tf**3)**2*np.cos(2*np.pi*b*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3)) - 2*np.pi*B*b*(120*t**3/tf**5 - 180*t**2/tf**4 + 60*t/tf**3)*np.sin(2*np.pi*b*(6*t**5/tf**5 - 15*t**4/tf**4 + 10*t**3/tf**3))
+    
+    r_ref = np.vstack([r_x, r_y, r_xdot, r_ydot, r_xddot, r_yddot])
+    
+    return r_ref
+
 def traj_setting():
     
     # theta0
@@ -111,7 +133,7 @@ def draw_anime(success):
         mission="Swing", 
         sim_object="double_pendulum",
         sim_info={'l1': l1, 'l2': l2},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
