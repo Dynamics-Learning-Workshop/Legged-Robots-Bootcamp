@@ -47,8 +47,6 @@ def solve_inverse_kinematics(q0, r_ref):
     q_k = q0
     dq_norm = np.inf
     
-    i = 0
-    
     # dr = J dq
     while dq_norm > 1e-6:
         theta0 = q_k[0]
