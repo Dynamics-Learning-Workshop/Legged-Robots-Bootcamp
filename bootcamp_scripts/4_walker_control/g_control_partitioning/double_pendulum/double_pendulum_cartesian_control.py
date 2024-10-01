@@ -197,7 +197,7 @@ def draw_anime(success):
         mission="Swing", 
         sim_object="double_pendulum",
         sim_info={'l1': l1, 'l2': l2},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
