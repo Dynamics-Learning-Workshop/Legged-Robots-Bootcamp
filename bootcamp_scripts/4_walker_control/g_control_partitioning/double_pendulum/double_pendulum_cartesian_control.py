@@ -182,10 +182,10 @@ def draw_anime(success):
     print()
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "double_pendulum_traj_tracking"
+        save_name = "double_pendulum_cartesian_control"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "double_pendulum_traj_tracking" + "_failed"
+        save_name = "double_pendulum_cartesian_control" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
