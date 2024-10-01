@@ -114,24 +114,6 @@ def get_Jacobian(q):
     
     return J
 
-q0dot_all = []
-q1dot_all = []
-def get_qdot():
-    rdot_ref_len = rdot_ref.shape[1]
-    for i in range(rdot_ref_len):
-        q = [q0_all[i], q1_all[i]]
-        J = get_Jacobian(q)
-        
-        # r_dot = J * q_dot
-        
-        qdot_i = np.linalg.pinv(J) @ rdot_ref[:,i]
-        
-        q0dot_all.append(qdot_i[0])
-        q1dot_all.append(qdot_i[1])
-        
-    return
-get_qdot()
-
 def get_Jacobian_dot(q, qdot):
     theta0 = q[0]
     theta1 = q[1]
@@ -146,8 +128,32 @@ def get_Jacobian_dot(q, qdot):
     
     return Jdot
 
+q0dot_all = []
+q1dot_all = []
 q0ddot_all = []
 q1ddot_all = []
+def get_qdot():
+    rdot_ref_len = rdot_ref.shape[1]
+    for i in range(rdot_ref_len):
+        q = [q0_all[i], q1_all[i]]
+        J = get_Jacobian(q)
+        
+        # r_dot = J * q_dot
+        qdot_i = np.linalg.pinv(J) @ rdot_ref[:,i]
+        
+        # r_ddot = J_dot * q_dot + J * q_ddot
+        Jdot = get_Jacobian_dot(q=q,qdot=qdot_i)
+        qddot_i = np.linalg.pinv(J) @ (rddot_ref[:,i] - Jdot @ np.linalg.pinv(J) @ rdot_ref[:,i])
+        
+        q0dot_all.append(qdot_i[0])
+        q1dot_all.append(qdot_i[1])
+        q0ddot_all.append(qddot_i[0])
+        q1ddot_all.append(qddot_i[1])
+    
+    return
+get_qdot()
+
+
 q0ddot_all_test = []
 q1ddot_all_test = []
 
@@ -160,17 +166,6 @@ def get_qddot():
         qdot = [q0dot_all[i], q1dot_all[i]]
         
         J = get_Jacobian(q)
-        Jdot = get_Jacobian_dot(q=q,qdot=qdot)
-        
-        # r_ddot = J_dot * q_dot + J * q_ddot
-        
-        qddot_i = np.linalg.inv(J) @ (rddot_ref[:,i] - Jdot @ qdot)
-        if np.linalg.norm(J @ qddot_i - (rddot_ref[:,i] - Jdot @ qdot)) > 0.00001:
-            print("here")
-            exit()
-        
-        q0ddot_all.append(qddot_i[0])
-        q1ddot_all.append(qddot_i[1])
         
         qddot_x_test = (qdot[0] - qdot_previous_x) / 1e-3
         qddot_y_test = (qdot[1] - qdot_previous_y) / 1e-3
@@ -181,7 +176,7 @@ def get_qddot():
         
     return
     
-get_qddot()
+# get_qddot()
 
 
 # # Create a new figure with specified size
@@ -202,11 +197,17 @@ plt.plot(t, q1ddot_all, label='lemniscate')
 # plt.plot(t, r_yddot, label='lemniscate')
 
 
+# plt.subplot(4, 1, 3)  # 2 rows, 1 column, 1st subplot
+# plt.plot(t, rddot_ref[0,:], label='lemniscate')
+
+# plt.subplot(4, 1, 4)  # 2 rows, 1 column, 1st subplot
+# plt.plot(t, rddot_ref[1,:], label='lemniscate')
+
 plt.subplot(4, 1, 3)  # 2 rows, 1 column, 1st subplot
-plt.plot(t, q0ddot_all_test, label='lemniscate')
+plt.plot(t, q0_all, label='lemniscate')
 
 plt.subplot(4, 1, 4)  # 2 rows, 1 column, 1st subplot
-plt.plot(t, q1ddot_all_test, label='lemniscate')
+plt.plot(t, q1_all, label='lemniscate')
 
 plt.tight_layout()
 plt.show()
