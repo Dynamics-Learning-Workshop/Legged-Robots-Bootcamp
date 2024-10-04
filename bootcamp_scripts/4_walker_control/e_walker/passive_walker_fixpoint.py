@@ -1,6 +1,8 @@
 import sys
 import os
 import numpy as np
+import scipy.optimize as opt
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
@@ -270,9 +272,19 @@ def P(x):
                     return 0
             
                 if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
+                    # print("SWITCH")
                     fsm = 'foot_strike'
+                    break
                     # print(fsm)
-                    return x_rk4
+                    
+        elif fsm == 'foot_strike':
+            # bounce state
+            
+            x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
+            theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
+            x_rk4 = np.array([theta0, theta1, omega0, omega1])
+            return x_rk4
+
 
 def my_fsolve(x0_, P_):
     xk = x0_
@@ -301,10 +313,11 @@ def my_fsolve(x0_, P_):
         ind = ind + 1
     
         dx_norm = np.linalg.norm(dx)
-        print(np.linalg.norm(dr))
-        print(dx_norm)
+        dr_norm = np.linalg.norm(dr)
+        print("REDIDUAL: ", dr_norm)
+        print("DX_NORM: ", dx_norm)
         
-        if dx_norm > dx_norm_previous and dx_norm < 1e-2:
+        if dr_norm < 1e-8:
             print("here")
             print(dx_norm)
             print(dx_norm_previous)
@@ -315,10 +328,13 @@ def my_fsolve(x0_, P_):
         
     return xk
 
-x0 = x_rk4
+# x0 = x_rk4
 x_rk4 = my_fsolve(x0_=x0, P_=P)
 no_of_walk = 10
 # exit()
+print("END FIXPOINT SEARCH")
+print(x_rk4)
+# x_rk4=np.array([ 0.16015935, -0.34163146, -0.22986697,  0.04821915])
 
 while True:
     if fsm == 'single_stance':
