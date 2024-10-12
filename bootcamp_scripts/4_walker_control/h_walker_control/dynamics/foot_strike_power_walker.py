@@ -91,6 +91,14 @@ J_C2 = sp.simplify(sp.Matrix([x_C2, y_C2]).jacobian(q))
 M_ss = sp.simplify(M_ss.subs([(theta0, theta0_n), (theta1, theta1_n)]))
 J_C2 = sp.simplify(J_C2.subs([(theta0, theta0_n), (theta1, theta1_n)]))
 
+R_C1 = sp.Matrix([x,y])
+J_C1 = sp.simplify(R_C1.jacobian(q))
+
+P = sp.symbols('P', real=True)
+P_st_x = -P*sp.sin(theta1_n); # remember that theta1 is negative when about to start swinging
+P_st_y = P*sp.cos(theta1_n);
+P_st = sp.Matrix([P_st_x, P_st_y])
+
 print()
 print("FOOT STRIKE")
 print("===DERIVATION ENDED===")
@@ -106,3 +114,14 @@ for i in range(2):
     for j in range(4):
         print("J"+str(i)+str(j)+" =",J_C2[i,j])
 print("=====================")
+print()
+print("J_C1", J_C1)
+print()
+for i in range(2):
+    for j in range(4):
+        print("J"+str(i)+str(j)+" =",J_C1[i,j])
+print("=====================")
+print()
+print("P", P)
+print()
+print(P_st)
