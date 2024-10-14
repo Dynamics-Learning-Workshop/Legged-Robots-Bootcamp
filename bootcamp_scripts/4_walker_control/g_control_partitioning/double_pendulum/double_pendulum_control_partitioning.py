@@ -157,7 +157,7 @@ t_lim = 10.0
 
 while True:
     tau = tau_control(x_rk4)
-    x_rk4_new = inte().rk4_ctrl(f_double_pendulum, x=x_rk4, u=tau, h=t_step)
+    x_rk4_new = inte().rk4(f_double_pendulum, x=x_rk4, u=tau, h=t_step, ctrl_on=True)
     
     q0_all_rk4.append(x_rk4_new[0])
     q1_all_rk4.append(x_rk4_new[1])

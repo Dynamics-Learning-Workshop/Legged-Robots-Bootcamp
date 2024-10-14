@@ -83,6 +83,13 @@ print(1000 * t_step * sample_factor)
 print()
 print("START")
 
+# zstar = [ 0.142821844397568  -0.320342245235108  -0.285643688795094   0.073672117908649];
+
+def traj_setting():
+    
+    q_ref = np.vstack([q1_ref, q1dot_ref, q1ddot_ref])
+    return q_ref
+
 def f_single_stance(x,u):
     I = leg_I
     M = hip_m
@@ -100,20 +107,71 @@ def f_single_stance(x,u):
     M01 =  1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1)
     M10 =  1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1)
     M11 =  1.0*I + 1.0*c**2*m
+    M_mat = np.array([[M00, M01],[M10, M11]])
     
-    b_0 =  1.0*M*g*l*np.sin(gam - theta0) - 1.0*c*g*m*np.sin(gam - theta0) + 1.0*c*g*m*np.sin(-gam + theta0 + theta1) + 2.0*c*l*m*omega0*omega1*np.sin(theta1) + 1.0*c*l*m*omega1**2*np.sin(theta1) + 2.0*g*l*m*np.sin(gam - theta0)
-    b_1 =  1.0*c*m*(g*np.sin(-gam + theta0 + theta1) - l*omega0**2*np.sin(theta1))
+    N0 =  1.0*M*g*l*np.sin(gam - theta0) - 1.0*c*g*m*np.sin(gam - theta0) + 1.0*c*g*m*np.sin(-gam + theta0 + theta1) + 2.0*c*l*m*omega0*omega1*np.sin(theta1) + 1.0*c*l*m*omega1**2*np.sin(theta1) + 2.0*g*l*m*np.sin(gam - theta0)
+    N1 =  1.0*c*m*(g*np.sin(-gam + theta0 + theta1) - l*omega0**2*np.sin(theta1))
     
-    A = np.array([[M00, M01],[M10, M11]])
-    b = np.array([-b_0, -b_1])
+    N = np.array([N0, N1])
+    
+    # M theta'' + N = B u
+    # M theta'' = (Bu - N)
+    B = np.array([[0], [1]])
+    
+    A = M_mat
+    b = B @ u - N
+
     x_new = np.linalg.solve(A,b)
     
     return np.array([
         omega0, 
         omega1, 
         x_new[0], 
-        x_new[1] + u
+        x_new[1]
         ])
+    
+def control_partition_gen(x, x_ref):
+    I = leg_I
+    M = hip_m
+    c = leg_c
+    l = leg_l
+    m = leg_m
+    
+    theta0 = x[0]
+    theta1 = x[1]
+    omega0 = x[2]
+    omega1 = x[3]
+    gam = slope_angle
+    
+    # u = [ScM^(-1)B]^(-1)[theta_c'' + Sc M^(-1) N]
+    Sc = np.array([0, 1])
+    
+    M00 =  2.0*I + 1.0*M*l**2 + 2.0*c**2*m - 2.0*c*l*m*np.cos(theta1) - 2.0*c*l*m + 2.0*l**2*m
+    M01 =  1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1)
+    M10 =  1.0*I + 1.0*c**2*m - 1.0*c*l*m*np.cos(theta1)
+    M11 =  1.0*I + 1.0*c**2*m
+    M_mat = np.array([[M00, M01],[M10, M11]])
+    B = np.array([[0], [1]])
+    
+    
+    Kp = 100
+    Kd = 2 * np.sqrt(Kp)
+    thetac_ref = x_ref[0]
+    thetacdot_ref = x_ref[1]
+    thetacddot_ref = x_ref[2]
+    
+    thetaddot_c = thetacddot_ref - Kp * (theta1 - thetac_ref) - Kd * (omega1 - thetacdot_ref)
+    
+    
+    N0 =  1.0*M*g*l*np.sin(gam - theta0) - 1.0*c*g*m*np.sin(gam - theta0) + 1.0*c*g*m*np.sin(-gam + theta0 + theta1) + 2.0*c*l*m*omega0*omega1*np.sin(theta1) + 1.0*c*l*m*omega1**2*np.sin(theta1) + 2.0*g*l*m*np.sin(gam - theta0)
+    N1 =  1.0*c*m*(g*np.sin(-gam + theta0 + theta1) - l*omega0**2*np.sin(theta1))
+    N = np.array([N0, N1])
+    
+    A = Sc @ np.linalg.inv(M_mat) @ B
+    b = (thetaddot_c + Sc @ np.linalg.inv(M_mat) @ N)
+    u = np.linalg.solve(A,b)
+    
+    return u
 
 def f_foot_strike(x):
     
@@ -255,28 +313,15 @@ def draw_anime(success):
     )
     exit()
 
-def swing_control(phi_d, x):
-    # cascaded P-control here
-    current_phidot = f_single_stance(x=x,u=0)[1]
-    current_phiddot = f_single_stance(x=x,u=0)[3]
-    phidot_d = Kp_phi * (phi_d - x[1]) 
-    
-    u = Kp_phidot * (phidot_d - x[3]) + current_phiddot
-    
-    return u
+
 
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
-            if control_set:
-                # print("why!!!!!!!!!!!!!!!!!!!!!!1")
-                # print(phi_des - x_rk4[1])
-                u = swing_control(phi_d=phi_des, x=x_rk4)
-            else:
-                u = 0
+            u = control_partition_gen(phi_d=phi_des, x=x_rk4)
             # print(u)
-            x_rk4_new = inte().rk4_ctrl(f_single_stance, x=x_rk4, u=u, h=t_step)
+            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, u=u, h=t_step, ctrl_on=True)
             
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])

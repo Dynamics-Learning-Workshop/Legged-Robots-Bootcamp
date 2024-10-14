@@ -76,21 +76,27 @@ class Integrator(RobotUtils):
         self.fig = None
         self.ax = None
     
-    def rk4(self, func, x, h):
-        k1 = func(x) * h
-        k2 = func(x + k1 / 2) * h
-        k3 = func(x + k2 / 2) * h  
-        k4 = func(x + k3) * h
+    def rk4(self, func, x, u, h, ctrl_on=False):
         
+        if ctrl_on:
+            k1 = func(x,u) * h
+            k2 = func(x + k1 / 2, u) * h
+            k3 = func(x + k2 / 2, u) * h  
+            k4 = func(x + k3, u) * h
+        else:
+            k1 = func(x) * h
+            k2 = func(x + k1 / 2) * h
+            k3 = func(x + k2 / 2) * h  
+            k4 = func(x + k3) * h
+            
+            
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+
     
-    def rk4_ctrl(self, func, x, u, h):
-        k1 = func(x,u) * h
-        k2 = func(x + k1 / 2, u) * h
-        k3 = func(x + k2 / 2, u) * h  
-        k4 = func(x + k3, u) * h
+    def rk45(self, func, x, h, ctrl_on=True, events=None):
         
-        return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        return
+
     
     def euler_forward(self, func, x, h):
         return x + h * func(x)

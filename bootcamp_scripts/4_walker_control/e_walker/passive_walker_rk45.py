@@ -4,12 +4,6 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
-import pickle
-import torch
-import numpy as np
-from sklearn.preprocessing import StandardScaler
-import torch.nn as nn
-
 
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
@@ -17,20 +11,24 @@ leg_m = 0.5 # kg, mass of leg
 leg_I = 0.02 # kg x m^2, moment of inertia of leg
 leg_l = 1.0 # kg x m^2, length of 
 leg_c = 0.5 # m, CoM of the leg
-g = 10.0 # gravity
-slope_angle = 0.01
+g = 1.0 # gravity
+slope_angle = 0.025
 
 # initial states in ground plane {G}
 # initial state of q = [q0, q1, u0, u1, x0, x1]
 # which are {q0, q1} = {theta_leg0, theta_leg1}
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
-q0 = 0.0
-q1 = 0.4
+q0 = 0.2
+q0 = 0.162597833780041
+q1 = -0.4
+q1 =  -0.325195667560083
 
-u0 = -0.6
-u1 = 0.0
-
+u0 = -0.25
+u0 = -0.231869638058930
+u1 = 0.2
+u1 = 0.037978468073743
+# % zstar = [0.162597833780041  -0.231869638058930  -0.325195667560083   0.037978468073743]
 
 x0 = 0.0
 x1 = 0.0
@@ -46,8 +44,6 @@ fsm = 'single_stance'
 # states after all integration
 q0_all_rk4 = []
 q1_all_rk4 = []
-u0_all_rk4 = []
-u1_all_rk4 = []
 x0_all_rk4 = []
 x1_all_rk4 = []
 foot_on_ground_now_all = [] # foot 1, foot 2
@@ -59,71 +55,14 @@ t_all = []
 # integration environs
 t_step = 1e-3
 ground = 0
-no_of_walk = 6
+no_of_walk = 5
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
- 
-# set controller prequisites
-def get_desired_q0dot(xdot_hip_desired):
-    l = leg_l
-    # get the desired q0dot from xdot_hip_desired
-    # from Jacobian, we know -l cos(theta0) * q0dot = xdot_H
-    # -> q0dot = -l * xdot_H / cos(theta0)
-    # -> q0dot = -l * xdot_H
-    return -l * xdot_hip_desired
-
-q0dot_des = get_desired_q0dot(xdot_hip_desired=1.5)
-print(q0dot_des)
-print("==================")
-# exit()
-control_set = False
-phi_des = 0
-
-Kp_v = 0.05
-Kp_phi = 4.0
-Kp_phidot = 8.0
-# Kd_phi = 0.05
-
-# poly fitting control
-# with open('./data_n_model/test_model.pkl', 'rb') as f:
-    # poly, model = pickle.load(f)
-with open('./data_n_model/pca_model_here.pkl', 'rb') as f:
-    pca, poly, model = pickle.load(f)
-    
-    
-# Define the neural network model
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-        self.fc1 = nn.Linear(4, 64)  # Input layer
-        self.fc2 = nn.Linear(64, 32)  # Hidden layer
-        self.fc3 = nn.Linear(32, 1)   # Output layer
-
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))   # Activation function
-        x = torch.relu(self.fc2(x))   # Activation function
-        x = self.fc3(x)                # Output layer
-        return x
-
-# Instantiate the model
-model = NeuralNetwork()
-
-# Load the trained model's weights
-model.load_state_dict(torch.load('./data_n_model/neural_network_model.pth', map_location=torch.device('cpu')))
-
-# Load the input array
-input_array = np.load('./data_n_model/input_array_16.npy')
-
-# Fit the scaler on the entire dataset
-scaler = StandardScaler()
-scaler.fit(input_array)
-
 print(1000 * t_step * sample_factor)
-print()
-print("START")
 
-def f_single_stance(x,u):
+
+def f_single_stance(x):
     I = leg_I
     M = hip_m
     c = leg_c
@@ -152,7 +91,7 @@ def f_single_stance(x,u):
         omega0, 
         omega1, 
         x_new[0], 
-        x_new[1] + u
+        x_new[1] 
         ])
 
 def f_foot_strike(x):
@@ -232,6 +171,7 @@ def f_foot_strike(x):
 def check_sys(x1):
     if x1 < - 1 * event_thres:
         print('SYSTEM FAILED...')
+        print(x1)
         print()
         draw_anime(False)
 
@@ -248,7 +188,6 @@ def get_foot_in_air(x, x_current_stance):
     foot_in_air_G = np.dot(T_B1_2_G, foot_in_air_B1)
     
     return foot_in_air_G[0:2]
-
 def get_hip(x, x_current_stance):
     T_B1_2_G = util().homo2D(
         psi=np.pi/2+x[0], 
@@ -260,22 +199,12 @@ def get_hip(x, x_current_stance):
     return hip_G[0:2]
 
 def draw_anime(success):
-    print('INTEGRATION END')
-    print('TIME NOW: ', t)
-    print()
-    print('MAX q1: ', np.max(q1_all_rk4))
-    print('MIN q1: ', np.min(q1_all_rk4))
-    print('MAX u0: ', np.max(u0_all_rk4))
-    print('MIN u0: ', np.min(u0_all_rk4))
-    print('MAX u1: ', np.max(u1_all_rk4))
-    print('MIN u1: ', np.min(u1_all_rk4))
-    print('=======')
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "walker_nn_control"
+        save_name = "passive_walker"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "walker_nn_control" + "_failed"
+        save_name = "passive_walker" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
@@ -287,7 +216,7 @@ def draw_anime(success):
             foot_on_ground_now_all[::sample_factor]
         ], 
         ms=1000 * t_step * sample_factor,
-        mission="Walker Control (NN)", 
+        mission="Walk", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
         save=False,
@@ -295,51 +224,14 @@ def draw_anime(success):
     )
     exit()
 
-def swing_control(phi_d, x):
-    # cascaded P-control here
-    current_phidot = f_single_stance(x=x,u=0)[1]
-    current_phiddot = f_single_stance(x=x,u=0)[3]
-    phidot_d = Kp_phi * (phi_d - x[1]) 
-    
-    u = Kp_phidot * (phidot_d - x[3]) + current_phiddot
-    
-    return u
-
-def phi_control(d):
-    
-    # Convert to PyTorch tensor
-    # d[3] = d[3] * 100
-    d = d.reshape(1, -1)  # Reshape to (1, 4)
-    
-    # normalized_single_data_point = scaler.transform(d)
-    input_tensor = torch.tensor(d, dtype=torch.float32)
-    
-    
-    model.eval()  # Set the model to evaluation mode
-    with torch.no_grad():  # No need to track gradients
-        output_tensor = model(input_tensor)
-    # print(output_tensor.cpu().numpy())
-    # exit()
-    return output_tensor.cpu().numpy()[0]
-
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
-            if control_set:
-                # print("why!!!!!!!!!!!!!!!!!!!!!!1")
-                # print(phi_des - x_rk4[1])
-                u = swing_control(phi_d=phi_des, x=x_rk4)
-            else:
-                u = 0
-            # print(u)
-            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, u=u, h=t_step, ctrl_on=True)
+            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, h=t_step)
             
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])
-            u0_all_rk4.append(x_rk4_new[2])
-            u1_all_rk4.append(x_rk4_new[3])
-            
             x0_all_rk4.append(x_current_stance[0])
             x1_all_rk4.append(x_current_stance[1])
             foot_on_ground_now_all.append(foot_on_ground_now)
@@ -350,34 +242,28 @@ while True:
             x_rk4 = x_rk4_new
             
             foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
+            
             hip = get_hip(x_rk4, x_current_stance)
             
             check_sys(hip[1])
-
-            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
+            
+            # print(np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres)
+            # print(np.abs(2 * x_rk4[0]) - np.abs(x_rk4[1]) < event_thres)
+            # if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres:
+                # exit()
+            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > event_thres and np.abs(x_rk4[1]) > event_thres and x_rk4[0] < 0:
                 fsm = 'foot_strike'
-                print("SWITCH TO FOOT STRIKE")
+                # print("")
                 break
             
-            if np.abs(x_rk4[0]) < 0.1 * event_thres:
-                print("APEX!")
-                phi_des = phi_control(d=np.array([x_rk4[1], x_rk4[2], x_rk4[3], q0dot_des]))[0]
-                print("v_error: ", q0dot_des - x_rk4[2])
-                print("PHI_DES: ", phi_des)
-                print()
-                
-                control_set = True
-            
-            # if t > 10.0:
-            #     print("TIME'S UP")
-            #     draw_anime(False)
+            if t > 20:
+                draw_anime(False)
         
     elif fsm == 'foot_strike':
         # bounce state
         x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
         theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
         x_rk4 = np.array([theta0, theta1, omega0, omega1])
-        
         if foot_on_ground_now == 1:
             foot_on_ground_now = 2
         else:
@@ -386,9 +272,8 @@ while True:
         fsm = 'single_stance'
         walk_i = walk_i + 1
         print(walk_i)
-        # control_set = False
             
     if walk_i == no_of_walk:
         break
-
+    
 draw_anime(True)

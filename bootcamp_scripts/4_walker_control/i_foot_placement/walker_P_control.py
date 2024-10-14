@@ -276,7 +276,7 @@ while True:
             else:
                 u = 0
             # print(u)
-            x_rk4_new = inte().rk4_ctrl(f_single_stance, x=x_rk4, u=u, h=t_step)
+            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, u=u, h=t_step, ctrl_on=True)
             
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])

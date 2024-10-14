@@ -81,7 +81,7 @@ def f_fictitious(x, tau):
 
 while True:
     tau = tau_control(x_rk4)
-    x_new_rk4 = Integrator().rk4_ctrl(f_fictitious, x=x_rk4, u=tau, h=t_step)
+    x_new_rk4 = Integrator().rk4(f_fictitious, x=x_rk4, u=tau, h=t_step, ctrl_on=True)
     
     x0_all_rk4.append(x_new_rk4[0])
     x1_all_rk4.append(x_new_rk4[1])

@@ -65,7 +65,7 @@ def draw_anime(success):
 
 while True:
     u = force_control(x_rk4)
-    x_new_rk4 = Integrator().rk4_ctrl(f_spring_mass_damper, x=x_rk4, u=u, h=t_step)
+    x_new_rk4 = Integrator().rk4(f_spring_mass_damper, x=x_rk4, u=u, h=t_step, ctrl_on=True)
     x0_all_rk4.append(x_new_rk4[0])
     
     dx0_all_rk4.append(x_new_rk4[1])
