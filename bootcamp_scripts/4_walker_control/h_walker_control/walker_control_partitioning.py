@@ -88,6 +88,7 @@ print("START")
 def traj_setting():
     
     q_ref = np.vstack([q1_ref, q1dot_ref, q1ddot_ref])
+    # [ 0.11263063 -0.22557703 -0.15939688  0.02410867]
     return q_ref
 
 def f_single_stance(x,u):
@@ -314,14 +315,14 @@ def draw_anime(success):
     exit()
 
 
-
+last_event = 0
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
             u = control_partition_gen(phi_d=phi_des, x=x_rk4)
             # print(u)
-            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, u=u, h=t_step, ctrl_on=True)
+            x_rk4_new = inte().rkdp(f_single_stance, x=x_rk4, u=u, h=t_step, ctrl_on=True)
             
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])
@@ -342,10 +343,11 @@ while True:
             
             check_sys(hip[1])
 
-            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
+            if (x_rk4[1] + 2 * x_rk4[0]) * last_event < 0 and x_rk4[0] < -0.05:
                 fsm = 'foot_strike'
-                print("SWITCH TO FOOT STRIKE")
+                # print("")
                 break
+            last_event = x_rk4[1] + 2 * x_rk4[0]
             
             if np.abs(x_rk4[0]) < 0.1 * event_thres:
                 print("APEX!")

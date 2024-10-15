@@ -265,6 +265,7 @@ def swing_control(phi_d, x):
     
     return u
 
+control_set = False
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
@@ -275,7 +276,7 @@ while True:
                 u = swing_control(phi_d=phi_des, x=x_rk4)
             else:
                 u = 0
-            # print(u)
+            print(u)
             x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, u=u, h=t_step, ctrl_on=True)
             
             q0_all_rk4.append(x_rk4_new[0])

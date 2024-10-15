@@ -12,7 +12,7 @@ hip_m = 1.0 # kg, mass of hip
 leg_m = 0.5 # kg, mass of leg
 leg_I = 0.02 # kg x m^2, moment of inertia of leg
 leg_l = 1.0 # kg x m^2, length of 
-leg_c = 0.5 # m, CoM of the leg
+leg_c = leg_l * 0.5 # m, CoM of the leg
 g = 1.0 # gravity
 slope_angle = 0.01
 

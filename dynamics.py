@@ -105,10 +105,14 @@ class Integrator(RobotUtils):
         B = np.array((35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84))
         
         if ctrl_on:
-            k1 = func(x,u) * h
-            k2 = func(x + k1 / 2, u) * h
-            k3 = func(x + k2 / 2, u) * h  
-            k4 = func(x + k3, u) * h
+            k1 = func(x, u)
+            k2 = func(x + h * a21 * k1, u)
+            k3 = func(x + h * (a31 * k1 + a32 * k2), u)
+            k4 = func(x + h * (a41 * k1 + a42 * k2 + a43 * k3), u)
+            k5 = func(x + h * (a51 * k1 + a52 * k2 + a53 * k3 + a54 * k4), u)
+            k6 = func(x + h * (a61 * k1 + a62 * k2 + a63 * k3 + a64 * k4 + a65 * k5), u)
+
+            k = np.array((k1, k2, k3, k4, k5, k6))
         else:
             k1 = func(x)
             k2 = func(x + h * a21 * k1)
