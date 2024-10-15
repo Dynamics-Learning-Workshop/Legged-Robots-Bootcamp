@@ -211,10 +211,10 @@ def get_hip(x, x_current_stance):
 def draw_anime(success):
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "passive_walker"
+        save_name = "passive_walker_fixed_point"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "passive_walker" + "_failed"
+        save_name = "passive_walker_fixed_point" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
