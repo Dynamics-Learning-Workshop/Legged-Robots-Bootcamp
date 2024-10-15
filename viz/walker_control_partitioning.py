@@ -317,10 +317,10 @@ def get_hip(x, x_current_stance):
 def draw_anime(success):
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "passive_walker_fixed_point"
+        save_name = "passive_walker_control_partition"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "passive_walker_fixed_point" + "_failed"
+        save_name = "passive_walker_control_partition" + "_failed"
     print('FPS:', 1000 / (1000 * t_step * sample_factor))
     print('ACC:', acc_factor)
     inte().anime(
@@ -336,7 +336,7 @@ def draw_anime(success):
         mission="Walk", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=False,
+        save=True,
         save_name=save_name
     )
     exit()
@@ -442,7 +442,6 @@ while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
-            print(t-t_start)
             x_ref_now = get_ref(p, t-t_start, tf_one_step)
             u = control_partition_gen(x=x_rk4, x_ref=x_ref_now)
             # print(u)
