@@ -58,11 +58,11 @@ t_all = []
 # integration environs
 t_step = 1e-3
 ground = 0
-no_of_walk = 10
+no_of_walk = 20
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
-print(1000 * t_step * sample_factor)
+acc_factor = 4
 
 
 def f_single_stance(x):
@@ -73,7 +73,7 @@ def f_single_stance(x):
     m = leg_m
     
     theta0 = x[0]
-    theta1 = x[1]
+    theta1 = x[1] 
     omega0 = x[2]
     omega1 = x[3]
     gam = slope_angle
@@ -215,15 +215,16 @@ def draw_anime(success):
     else:
         print('SYSTEM INTEGRATION FAILED...')
         save_name = "passive_walker_fixed_point" + "_failed"
-    
+    print('FPS:', 1000 / (1000 * t_step * sample_factor))
+    print('ACC:', acc_factor)
     inte().anime(
-        t=t_all[::sample_factor], 
+        t=t_all[::sample_factor * acc_factor], 
         x_states=[
-            q0_all_rk4[::sample_factor], 
-            q1_all_rk4[::sample_factor], 
-            x0_all_rk4[::sample_factor], 
-            x1_all_rk4[::sample_factor],
-            foot_on_ground_now_all[::sample_factor]
+            q0_all_rk4[::sample_factor * acc_factor], 
+            q1_all_rk4[::sample_factor * acc_factor], 
+            x0_all_rk4[::sample_factor * acc_factor], 
+            x1_all_rk4[::sample_factor * acc_factor],
+            foot_on_ground_now_all[::sample_factor * acc_factor]
         ], 
         ms=1000 * t_step * sample_factor,
         mission="Walk", 
@@ -348,11 +349,13 @@ def f_lala(x):
 
 
 
-print(x_rk4)
-x_lala = opt.fsolve(f_lala, x_rk4, xtol=1e-6,)
-print(x_lala)
-print("END FIXPOINT SEARCH")
-x_rk4 = x_lala
+# print(x_rk4)
+# x_lala = opt.fsolve(f_lala, x_rk4, xtol=1e-6,)
+# print(x_lala)
+# print("END FIXPOINT SEARCH")
+# x_rk4 = x_lala
+
+x_rk4 = np.array([ 0.11263063 + 0.01, -0.22557703, -0.15939688, 0.02410867])
 
 print(np.linalg.norm(P(x_rk4) - x_rk4))
 # exit()
