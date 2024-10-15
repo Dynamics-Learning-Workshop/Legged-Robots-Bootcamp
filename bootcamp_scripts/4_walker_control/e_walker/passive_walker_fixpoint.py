@@ -2,7 +2,7 @@ import sys
 import os
 import numpy as np
 import scipy.optimize as opt
-
+from scipy.integrate import solve_ivp
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
@@ -21,15 +21,15 @@ slope_angle = 0.01
 # which are {q0, q1} = {theta_leg0, theta_leg1}
 # which are {u0, u1} = {omega_leg0, omega_leg1}
 # which are {x0, x1} = {xc_leg0, xc_leg1}
-q0 = 0.18
-# q0 = 0.162597833780041
-q1 = -0.36
-# q1 =  -0.325195667560083
+q0 = 0.2
+q0 = 0.162597833780041
+q1 = -0.4
+q1 =  -0.325195667560083
 
 u0 = -0.25
-# u0 = -0.231869638058930
-u1 = 0.1
-# u1 = 0.037978468073743
+u0 = -0.231869638058930
+u1 = 0.2
+u1 = 0.037978468073743
 # % zstar = [0.162597833780041  -0.231869638058930  -0.325195667560083   0.037978468073743]
 
 # x0 = 0.0
@@ -58,7 +58,7 @@ t_all = []
 # integration environs
 t_step = 1e-3
 ground = 0
-no_of_walk = 5
+no_of_walk = 10
 walk_i = 0
 event_thres = 1e-2
 sample_factor = 10
@@ -177,6 +177,12 @@ def check_sys(x1):
         print(x1)
         print()
         draw_anime(False)
+def check_sys_f(x1):
+    if x1 < - 1 * event_thres:
+        return True
+        print('SYSTEM FAILED...')
+        print(x1)
+        # print(
 
 def get_foot_in_air(x, x_current_stance):
     T_B1_2_G = util().homo2D(
@@ -249,45 +255,6 @@ def numerical_Jacobian(f, x):
     print('CALCULATED!!!')
     return J_return
 
-def P(x):
-    x_rk4 = np.array([x[0], x[1], x[2], x[3]])
-    fsm = 'single_stance'
-    x_current_stance = [0,0]
-
-    while True:
-        if fsm == 'single_stance':
-            # integrate throughout single stance
-            while True:
-                x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, h=t_step)
-
-                x_rk4 = x_rk4_new
-                
-                foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
-                hip = get_hip(x_rk4, x_current_stance)
-                
-                fail = check_sys(hip[1])
-                if fail:
-                    print('SYSTEM FAILED...')
-                    exit()
-                    return 0
-            
-                if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
-                    # print("SWITCH")
-                    fsm = 'foot_strike'
-                    break
-                    # print(fsm)
-                    
-        elif fsm == 'foot_strike':
-            # bounce state
-            
-            x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
-            theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
-            x_rk4 = np.array([theta0, theta1, omega0, omega1])
-            return x_rk4
-
-def f_lala(x):
-    return x - P(x)
-
 def my_fsolve(x0_, P_):
     xk = x0_
     dx_norm = np.inf
@@ -331,9 +298,58 @@ def my_fsolve(x0_, P_):
     return xk
 
 
-x_rk4=np.array([ 0.18, -0.36, -0.25, 0.1])
+def P(x):
+    x_rk4 = np.array([x[0], x[1], x[2], x[3]])
+    fsm = 'single_stance'
+    x_current_stance = [0,0]
+    last_event = 0
+    while True:
+        if fsm == 'single_stance':
+            # integrate throughout single stance
+            while True:
+                x_rk4_new = inte().rkdp(f_single_stance, x=x_rk4, h=t_step)
+
+                x_rk4 = x_rk4_new
+                
+                foot_in_air = get_foot_in_air(x_rk4, x_current_stance)
+                hip = get_hip(x_rk4, x_current_stance)
+                
+                fail = check_sys_f(hip[1])
+                if fail:
+                    print('SYSTEM FAILED...')
+                    # exit()
+                    return np.nan * np.ones_like(x_rk4)  # return NaNs
+
+                if (x_rk4[1] + 2 * x_rk4[0]) * last_event < 0 and x_rk4[0] < -0.05:
+                    fsm = 'foot_strike'
+                    # print("")
+                    break
+                last_event = x_rk4[1] + 2 * x_rk4[0]
+                
+                # if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > 1 * event_thres and np.abs(x_rk4[1]) > 1 * event_thres and x_rk4[0] < 0:
+                #     # print("SWITCH")
+                #     fsm = 'foot_strike'
+                #     break
+                #     # print(fsm)
+                    
+        elif fsm == 'foot_strike':
+            # bounce state
+            
+            x_current_stance = [get_foot_in_air(x_rk4, x_current_stance)[0], 0]
+            theta0, theta1, omega0, omega1 = f_foot_strike(x_rk4)
+            x_rk4 = np.array([theta0, theta1, omega0, omega1])
+            return x_rk4
+
+def f_lala(x):
+    result = P(x)
+    if np.any(np.isnan(result)):  # Check for NaN in the output
+        return np.full_like(result, np.inf)  # Return infinities for failed cases
+    return x - result
+
+
+
 print(x_rk4)
-x_lala = opt.fsolve(f_lala, x_rk4, xtol=1e-4)
+x_lala = opt.fsolve(f_lala, x_rk4, xtol=1e-6,)
 print(x_lala)
 print("END FIXPOINT SEARCH")
 x_rk4 = x_lala
@@ -341,11 +357,12 @@ x_rk4 = x_lala
 print(np.linalg.norm(P(x_rk4) - x_rk4))
 # exit()
 
+last_event = 0
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
-            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, h=t_step)
+            x_rk4_new = inte().rkdp(f_single_stance, x=x_rk4, h=t_step)
             
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])
@@ -364,18 +381,15 @@ while True:
             
             check_sys(hip[1])
             
-            # print(np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres)
-            # print(np.abs(2 * x_rk4[0]) - np.abs(x_rk4[1]) < event_thres)
-            # if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres:
-                # exit()
-            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > event_thres and np.abs(x_rk4[1]) > event_thres and x_rk4[0] < 0:
+            if (x_rk4[1] + 2 * x_rk4[0]) * last_event < 0 and x_rk4[0] < -0.05:
                 fsm = 'foot_strike'
-                
-                
+                # print("")
+                print(x_rk4)
                 break
+            last_event = x_rk4[1] + 2 * x_rk4[0]
             
-            if t > 20:
-                draw_anime(False)
+            # if t > 20:
+            #     draw_anime(False)
         
     elif fsm == 'foot_strike':
         # bounce state

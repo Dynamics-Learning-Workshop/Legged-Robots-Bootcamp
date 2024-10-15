@@ -12,7 +12,7 @@ leg_I = 0.02 # kg x m^2, moment of inertia of leg
 leg_l = 1.0 # kg x m^2, length of 
 leg_c = 0.5 # m, CoM of the leg
 g = 1.0 # gravity
-slope_angle = 0.025
+slope_angle = 0.01
 
 # initial states in ground plane {G}
 # initial state of q = [q0, q1, u0, u1, x0, x1]
@@ -173,6 +173,7 @@ def check_sys(x1):
         print('SYSTEM FAILED...')
         print(x1)
         print()
+        print(len(t_all))
         draw_anime(False)
 
 def get_foot_in_air(x, x_current_stance):
@@ -223,12 +224,14 @@ def draw_anime(success):
         save_name=save_name
     )
     exit()
-
+print(x_rk4)
+# exit()
+last_event = 0
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
-            x_rk4_new = inte().rk4(f_single_stance, x=x_rk4, h=t_step)
+            x_rk4_new = inte().rkdp(f_single_stance, x=x_rk4, h=t_step)
             
             q0_all_rk4.append(x_rk4_new[0])
             q1_all_rk4.append(x_rk4_new[1])
@@ -251,10 +254,20 @@ while True:
             # print(np.abs(2 * x_rk4[0]) - np.abs(x_rk4[1]) < event_thres)
             # if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres:
                 # exit()
-            if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > event_thres and np.abs(x_rk4[1]) > event_thres and x_rk4[0] < 0:
+            # print(x_rk4[1] + 2 * x_rk4[0])
+            if (x_rk4[1] + 2 * x_rk4[0]) * last_event < 0 and x_rk4[0] < -0.05:
+                print()
+                print("SWITCH")
+                print(x_rk4)
                 fsm = 'foot_strike'
-                # print("")
+                
                 break
+            last_event = x_rk4[1] + 2 * x_rk4[0]
+            
+            # if np.abs(foot_in_air[1] - x_current_stance[1]) < event_thres and np.abs(x_rk4[1] + 2 * x_rk4[0]) < event_thres and np.abs(x_rk4[0]) > event_thres and np.abs(x_rk4[1]) > event_thres and x_rk4[0] < 0:
+            #     fsm = 'foot_strike'
+            #     # print("")
+            #     break
             
             if t > 20:
                 draw_anime(False)

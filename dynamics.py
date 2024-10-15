@@ -76,7 +76,7 @@ class Integrator(RobotUtils):
         self.fig = None
         self.ax = None
     
-    def rk4(self, func, x, u, h, ctrl_on=False):
+    def rk4(self, func, x, h, u=0, ctrl_on=False):
         
         if ctrl_on:
             k1 = func(x,u) * h
@@ -93,10 +93,60 @@ class Integrator(RobotUtils):
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
     
-    def rk45(self, func, x, h, ctrl_on=True, events=None):
-        
-        return
+    def rkdp(self, func, x, h, u=0, ctrl_on=False, events=None):
+        a21 = 1 / 5
+        a31, a32 = 3 / 40, 9 / 40
+        a41, a42, a43 = 44 / 55, -56 / 15, 32 / 9
+        a51, a52, a53, a54 = 19372 / 6561, -25360 / 2187, 64448 / 6561, -212 / 729
+        a61, a62, a63, a64, a65 = 9017 / 3186, -355 / 33, 46732 / 5247, 49 / 176, -5103 / 18656
 
+        c2, c3, c4, c5, c6 = 1 / 5, 3 / 10, 4 / 5, 8 / 9, 1
+
+        B = np.array((35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84))
+        
+        if ctrl_on:
+            k1 = func(x,u) * h
+            k2 = func(x + k1 / 2, u) * h
+            k3 = func(x + k2 / 2, u) * h  
+            k4 = func(x + k3, u) * h
+        else:
+            k1 = func(x)
+            k2 = func(x + h * a21 * k1)
+            k3 = func(x + h * (a31 * k1 + a32 * k2))
+            k4 = func(x + h * (a41 * k1 + a42 * k2 + a43 * k3))
+            k5 = func(x + h * (a51 * k1 + a52 * k2 + a53 * k3 + a54 * k4))
+            k6 = func(x + h * (a61 * k1 + a62 * k2 + a63 * k3 + a64 * k4 + a65 * k5))
+
+            k = np.array((k1, k2, k3, k4, k5, k6))
+            
+        return x + h * B @ k
+
+    def adaptive_rk4(self, func, x, u, h, ctrl_on=True, events=None):
+        error_estimate = 0.01  # Set a threshold for error
+        while True:
+            k1 = func(x, u) * h
+            k2 = func(x + k1 / 2, u) * h
+            k3 = func(x + k2 / 2, u) * h  
+            k4 = func(x + k3, u) * h
+            
+            # RK4 step
+            x_new = x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+            
+            # Error estimation (using a coarser step, e.g., h/2)
+            h_half = h / 2
+            k1_half = func(x, u) * h_half
+            k2_half = func(x + k1_half / 2, u) * h_half
+            k3_half = func(x + k2_half / 2, u) * h_half  
+            k4_half = func(x + k3_half, u) * h_half
+            
+            x_half = x + (k1_half + 2 * k2_half + 2 * k3_half + k4_half) / 6
+            
+            # Estimate error
+            error = np.linalg.norm(x_new - x_half)
+            if error < error_estimate:
+                break  # Accept step if error is small enough
+            h /= 2  # Reduce step size and retry
+        return x_new
     
     def euler_forward(self, func, x, h):
         return x + h * func(x)
