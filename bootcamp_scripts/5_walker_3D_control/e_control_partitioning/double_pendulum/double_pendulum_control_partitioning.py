@@ -25,7 +25,7 @@ t_step = 1e-3
 t_all = []
 u_all = []
 
-q0=-np.pi/2
+q0=-np.pi
 q1=0.0
 u0=-0.0
 u1=-0.0

@@ -8,11 +8,11 @@ from dynamics import Integrator as inte, RobotUtils as util
 
 g = 9.81
 l1 = 1.0
-l2 = 0.5
+l2 = 1.0
 m1 = 1.0
-m2 = 0.5
-I1 = 0.02
-I2 = 0.02 / 8
+m2 = 1.0
+I1 = 0.5
+I2 = 0.5
 
 t = 0
 sample_factor = 10
@@ -25,22 +25,70 @@ t_step = 1e-3
 t_all = []
 u_all = []
 
-q0=-np.pi/2
+q0=-np.pi/2 - 0.5
 q1=0.0
 u0=-0.0
 u1=-0.0
 
 x_rk4 = np.array([q0, q1, u0, u1])
 
-q0_ref = np.pi/2
-q1_ref = 0
-
-q_ref = np.array([q0_ref, q1_ref])
-
 Kp = 100 * np.identity(2)
 Kd = 2 * np.sqrt(Kp)
 
 event_thres = 1e-2
+
+t0 = 0
+tf = 3
+t0_p0 = 0
+tf_p0 = 1.5
+t0_p1 = 1.5
+tf_p1 = 3.0
+
+def traj_setting():
+    
+    # theta0
+    al0_0 =  -np.pi/2 - 0.5
+    al0_1 =  0
+    al0_2 =  0.333333333333333
+    al0_3 =  -0.0740740740740741
+    
+    t_local = np.arange(t0, tf, t_step)
+    q0_ref = al0_0 + al0_1*t_local + al0_2*t_local**2 + al0_3*t_local**3
+    q0dot_ref = al0_1 + 2*al0_2*t_local + 3*al0_3*t_local**2
+    q0ddot_ref = 2*al0_2 + 6*al0_3*t_local
+    
+    # theta1
+    al1_p0_0 =  0
+    al1_p0_1 =  0
+    al1_p0_2 =  1.33333333333333 - 0.666666666666667*np.pi
+    al1_p0_3 =  -0.592592592592593 + 0.296296296296296*np.pi
+    al1_p1_0 =  -4.0 + 2.0*np.pi
+    al1_p1_1 =  8.0 - 4.0*np.pi
+    al1_p1_2 =  -4.0 + 2.0*np.pi
+    al1_p1_3 =  0.592592592592593 - 0.296296296296296*np.pi
+    
+    t_local = np.arange(t0_p0, tf_p0, t_step)
+    q1_ref_p0 = al1_p0_0 + al1_p0_1*t_local + al1_p0_2*t_local**2 + al1_p0_3*t_local**3
+    q1dot_ref_p0 = al1_p0_1 + 2*al1_p0_2*t_local + 3*al1_p0_3*t_local**2
+    q1ddot_ref_p0 = 2*al1_p0_2 + 6*al1_p0_3*t_local
+    
+    t_local = np.arange(t0_p1, tf_p1, t_step)
+    q1_ref_p1 = al1_p1_0 + al1_p1_1*t_local + al1_p1_2*t_local**2 + al1_p1_3*t_local**3
+    q1dot_ref_p1 = al1_p1_1 + 2*al1_p1_2*t_local + 3*al1_p1_3*t_local**2
+    q1ddot_ref_p1 = 2*al1_p1_2 + 6*al1_p1_3*t_local
+    
+    q1_ref = np.hstack([q1_ref_p0, q1_ref_p1])
+    q1dot_ref = np.hstack([q1dot_ref_p0, q1dot_ref_p1])
+    q1ddot_ref = np.hstack([q1ddot_ref_p0, q1ddot_ref_p1])
+    
+    q_ref = np.vstack([q0_ref, q1_ref, q0dot_ref, q1dot_ref, q0ddot_ref, q1ddot_ref])
+    
+    # print(q_ref.shape)
+    # print(q_ref[:,1])
+    
+    return q_ref
+
+# exit()
 
 def draw_anime(success):
     print('INTEGRATION END')
@@ -48,10 +96,10 @@ def draw_anime(success):
     print()
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "double_pendulum_control_partitioning"
+        save_name = "double_pendulum_traj_tracking"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "double_pendulum_control_partitioning" + "_failed"
+        save_name = "double_pendulum_traj_tracking" + "_failed"
     
     inte().anime(
         t=t_all[::sample_factor], 
@@ -79,7 +127,19 @@ def generate_noise_matrix(n, m):
     std_dev = 0.1
     return np.random.normal(mean, std_dev, (n, m))
 
-def tau_control(x):
+def tau_control(x, x_ref):
+    
+    theta0_ref = x_ref[0]
+    theta1_ref = x_ref[1]
+    qq_ref = np.array([theta0_ref, theta1_ref])
+    
+    theta0dot_ref = x_ref[2]
+    theta1dot_ref = x_ref[3]
+    qqdot_ref = np.array([theta0dot_ref, theta1dot_ref])
+    
+    theta0ddot_ref = x_ref[4]
+    theta1ddot_ref = x_ref[5]
+    qqddot_ref = np.array([theta0ddot_ref, theta1ddot_ref])
     
     theta0 = util().rad_2_pi_range(x[0] + generate_noise()) 
     theta1 = util().rad_2_pi_range(x[1] + generate_noise()) 
@@ -87,8 +147,8 @@ def tau_control(x):
     omega0 = x[2] + generate_noise()
     omega1 = x[3] + generate_noise()
     
-    q = np.array([theta0, theta1])
-    qdot = np.array([omega0, omega1])
+    qq = np.array([theta0, theta1])
+    qqdot = np.array([omega0, omega1])
     
     # M * qddot + C(qdot) + G(q)
     # = tau
@@ -111,7 +171,7 @@ def tau_control(x):
     G = np.array([g_0, g_1])
     G_hat = G + generate_noise_matrix(2,1).transpose().flatten()
     
-    tau = M_hat @ (- Kp @ (q-q_ref) - Kd @ qdot) + C_hat @ qdot + G_hat
+    tau = M_hat @ (qqddot_ref - Kp @ (qq-qq_ref) - Kd @ (qqdot - qqdot_ref)) + C_hat @ qqdot + G_hat
     
     return tau
 
@@ -155,8 +215,12 @@ def f_double_pendulum(x, tau):
     
 t_lim = 10.0
 
-while True:
-    tau = tau_control(x_rk4)
+q_ref = traj_setting()
+no_all_steps = q_ref.shape[1]
+
+for i in range(no_all_steps):
+    
+    tau = tau_control(x_rk4, q_ref[:,i])
     x_rk4_new = inte().rk4(f_double_pendulum, x=x_rk4, u=tau, h=t_step, ctrl_on=True)
     
     q0_all_rk4.append(x_rk4_new[0])
@@ -169,10 +233,6 @@ while True:
     x_rk4 = x_rk4_new
     theta0_current = util().rad_2_pi_range(x_rk4[0])
     theta1_current = util().rad_2_pi_range(x_rk4[1])
-    
-    # print(np.abs(theta0_current - q0_ref))
-    if np.abs(theta0_current - q0_ref) < event_thres and np.abs(theta1_current - q1_ref) < event_thres or t > t_lim:
-        break
     
 draw_anime(True)
 
