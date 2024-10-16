@@ -9,7 +9,7 @@ from dynamics_bootcamp import Integrator as inte, Simulation3D as sim3D, RobotUt
 x0 = 0
 x1 = 0
 x2 = 4
-dx0 = 0.2
+dx0 = 0.1
 dx1 = -0.4
 dx2 = 1
 
@@ -83,7 +83,7 @@ sim3D().anime(
     mission="Bounce", 
     sim_object="ball",
     sim_info={'ground':ground},
-    save=True,
+    save=False,
     save_name='bounce_3D'
 )
 

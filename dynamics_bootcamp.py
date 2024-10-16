@@ -586,16 +586,13 @@ class Simulation2D(RobotUtils):
 class Simulation3D(RobotUtils):
     def __init__(self):
         super().__init__() 
-        self.ball = plt.Circle((0, 0), 0.2, color='red', fill=True)
-        self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
-        self.leg = None
+        self.ball = None
+        self.ball1 = None
+        self.ball2 = None
         
-        self.head = plt.Circle((0, 0), 0.2, color='black', fill=True)
-        self.leg1 = None
-        self.leg2 = None
-        self.hand1 = None
-        self.hand2 = None
-        self.neck = None
+        self.rod = None
+        self.rod1 = None
+        self.rod2 = None
 
         self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
         self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
@@ -615,40 +612,46 @@ class Simulation3D(RobotUtils):
         
         if self.sim_object == 'ball':
             # draw ball
-            self.ball, = self.ax.plot([self.x_states[0][0]], [self.x_states[1][0]], [self.x_states[2][0]], 'o', color='red', markersize=10)
+            self.ball, = self.ax.plot([], [], [], 'o', color='red', markersize=10)
             
-            # draw ground
-            # Draw ground (a plane at z = ground level)
-            x_range = np.linspace(min(self.x_states[0]) - 2.0, max(self.x_states[0]) + 2.0, 100)
-            y_range = np.linspace(min(self.x_states[1]) - 2.0, max(self.x_states[1]) + 2.0, 100)
-            X, Y = np.meshgrid(x_range, y_range)
-            Z = np.full_like(X, self.sim_info['ground'])
-            self.ax.plot_surface(X, Y, Z, color='gray', alpha=0.5)
-            self.ax.set_aspect('equal')
+            self.set_sim_range(
+                min(self.x_states[0]) - 2.0, 
+                max(self.x_states[0]) + 2.0,
+                min(self.x_states[1]) - 2.0, 
+                max(self.x_states[1]) + 2.0,
+                min(self.x_states[2]) - 0.1, 
+                max(self.x_states[2]) + 0.1
+            )
             
-    def set_sim_range(self):
-        # Draw ground (a plane at z = ground level)
-        x_range = np.linspace(
-            min(self.x_states[0]) - 2.0, 
-            max(self.x_states[0]) + 2.0, 
-            10
-        )
-        y_range = np.linspace(
-            min(self.y_states[1]) - 2.0, 
-            max(self.y_states[1]) + 2.0, 
-            10
-        )
-        X, Y = np.meshgrid(x_range, y_range)
-        Z = np.full_like(X, self.sim_info['ground'])
-        self.ax.plot_surface(X, Y, Z, color='gray', alpha=0.5)
+        elif self.sim_object == 'rod':
+            
+            self.ball1, = self.ax.plot([],[],[], 'o', color='red', markersize=10)
+            self.ball2, = self.ax.plot([],[],[], 'o', color='green', markersize=10)
+            
+            self.rod, = self.ax.plot([], [], [], color='blue', linewidth=5)
+            
+            self.rod.set_data([], [])
+            self.rod.set_3d_properties([])
+            
+            self.set_sim_range(
+                min(self.x_states[0])-self.sim_info['rod_length']-0.5,
+                max(self.x_states[0])+self.sim_info['rod_length']+0.5,
+                min(self.x_states[1])-self.sim_info['rod_length']-0.5,
+                max(self.x_states[1])+self.sim_info['rod_length']+0.5,
+                min(self.x_states[2])-self.sim_info['rod_length']-0.5,
+                max(self.x_states[2])+self.sim_info['rod_length']+0.5,
+            )
+            
+    def set_sim_range(self, xmin, xmax, ymin, ymax, zmin, zmax):
         
         # Set plot limits and labels
-        self.ax.set_xlim(min(self.x_states[0]) - 2.0, max(self.x_states[0]) + 2.0)
-        self.ax.set_ylim(min(self.x_states[1]) - 2.0, max(self.x_states[1]) + 2.0)
-        self.ax.set_zlim(min(self.x_states[2]) - 0.1, max(self.x_states[2]) + 0.1)
+        self.ax.set_xlim(xmin, xmax)
+        self.ax.set_ylim(ymin, ymax)
+        self.ax.set_zlim(zmin, zmax)
         self.ax.set_xlabel('X')
         self.ax.set_ylabel('Y')
         self.ax.set_zlabel('Z')
+        self.ax.set_aspect('equal')
         
     def anime(
         self, 
@@ -667,7 +670,13 @@ class Simulation3D(RobotUtils):
         self.sim_info = sim_info
         self.anime_init()    
             
-        ani = FuncAnimation(self.fig, self.update, frames=len(t), interval=ms, blit=True)
+        ani = FuncAnimation(
+            self.fig, 
+            self.update, 
+            frames=len(t), 
+            interval=ms, 
+            blit=True
+        )
         
         if save:
             ani.save( save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
@@ -680,5 +689,38 @@ class Simulation3D(RobotUtils):
             # Update ball's position
             self.ball.set_data([self.x_states[0][frame]], [self.x_states[1][frame]])
             self.ball.set_3d_properties([self.x_states[2][frame]])  # Set z position
+            
+            return self.ball,
+            
+        elif self.sim_object == 'rod':
+            # self.ax.collections.remove(self.rod_surface)
+            
+            rod_start_now = [self.x_states[0][frame], self.x_states[1][frame], self.x_states[2][frame]]
+            pitch_now = self.x_states[3][frame]
+            yaw_now = self.x_states[4][frame]
+            
+            rod_start_now, rod_end_now = self.get_rod_cartesian(rod_start_now, pitch_now, yaw_now)            
+            
+            self.rod.set_data([rod_start_now[0], rod_end_now[0]], [rod_start_now[1], rod_end_now[1]])
+            self.rod.set_3d_properties([rod_start_now[2], rod_end_now[2]]) 
+            
+            self.ball1.set_data([rod_start_now[0]], [rod_start_now[1]])
+            self.ball1.set_3d_properties([rod_start_now[2]])  
+            
+            self.ball2.set_data([rod_end_now[0]], [rod_end_now[1]])
+            self.ball2.set_3d_properties([rod_end_now[2]])  
+            
+            return self.ball1, self.ball2, self.rod,
 
-        return self.ball,
+    
+    def get_rod_cartesian(self, x_rod_start, pitch, yaw):
+        x_rod_end = self.get_rod_end(pitch, yaw, self.sim_info['rod_length']) + x_rod_start
+        return x_rod_start, x_rod_end
+    
+    def get_rod_end(self, pitch, yaw, l):
+    
+        x_end_B = np.array([l,0,0])
+        R = self.rot3D(phi=0, theta=pitch, psi=yaw)
+        x_end_I = R @ x_end_B
+        
+        return x_end_I
