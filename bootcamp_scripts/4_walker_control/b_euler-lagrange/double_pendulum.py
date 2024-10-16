@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from dynamics import Integrator as inte, RobotUtils as util
+from dynamics_workshop import Integrator as inte, RobotUtils as util
 g = 9.81
 l1 = 1.0
 l2 = 0.5

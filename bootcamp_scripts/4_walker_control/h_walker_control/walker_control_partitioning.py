@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from dynamics import Integrator as inte, RobotUtils as util
+from dynamics_workshop import Integrator as inte, RobotUtils as util
 
 # If ctrl_on = False, and perturb_on = True, then the robot will fail
 # Elif ctrl_on = True, and perturb_on = True, then the robot will move

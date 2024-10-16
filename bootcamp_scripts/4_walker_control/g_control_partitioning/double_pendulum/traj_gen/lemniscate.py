@@ -5,7 +5,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../../')))
-from dynamics import Integrator as inte, RobotUtils as util
+from dynamics_workshop import Integrator as inte, RobotUtils as util
 
 A = 0.5
 B = A

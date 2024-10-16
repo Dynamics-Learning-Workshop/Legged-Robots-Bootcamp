@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from dynamics import Integrator
+from dynamics_workshop import Integrator
 
 x0 = 0
 x1 = 10
