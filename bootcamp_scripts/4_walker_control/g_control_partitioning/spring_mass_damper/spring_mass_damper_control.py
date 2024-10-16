@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
-from dynamics_workshop import Integrator
+from dynamics_bootcamp import Integrator
 
 m = 1
 c = 1

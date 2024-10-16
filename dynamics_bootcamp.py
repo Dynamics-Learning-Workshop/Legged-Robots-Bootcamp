@@ -588,7 +588,7 @@ class Simulation3D(RobotUtils):
         super().__init__() 
         
     def anime_init(self):
-        if self.sim_object == '3Dball':
+        if self.sim_object == 'ball':
             # draw ball
             self.ball = plt.Circle((self.x_states[0][0], self.x_states[1][0]), 0.2, color='red', fill=True)
             self.ax.add_patch(self.ball)
