@@ -586,31 +586,99 @@ class Simulation2D(RobotUtils):
 class Simulation3D(RobotUtils):
     def __init__(self):
         super().__init__() 
+        self.ball = plt.Circle((0, 0), 0.2, color='red', fill=True)
+        self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        self.leg = None
+        
+        self.head = plt.Circle((0, 0), 0.2, color='black', fill=True)
+        self.leg1 = None
+        self.leg2 = None
+        self.hand1 = None
+        self.hand2 = None
+        self.neck = None
+
+        self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        
+        self.x_states = []
+        
+        self.sim_object = 'ball'
+        self.sim_object = 'hopper'
+        self.sim_object = 'walker'
+        self.sim_info = {'ground':0, 'slope_angle':0, 'leg_l':0}
+        
+        self.fig = None
+        self.ax = None
         
     def anime_init(self):
+        self.fig, self.ax = plt.subplots(subplot_kw={'projection': '3d'})
+        
         if self.sim_object == 'ball':
             # draw ball
-            self.ball = plt.Circle((self.x_states[0][0], self.x_states[1][0]), 0.2, color='red', fill=True)
-            self.ax.add_patch(self.ball)
+            self.ball, = self.ax.plot([self.x_states[0][0]], [self.x_states[1][0]], [self.x_states[2][0]], 'o', color='red', markersize=10)
             
             # draw ground
-            self.ax.plot(
-                [
-                    min(self.x_states[0]) - 2.0, max(self.x_states[0]) + 2.0 
-                ], 
-                [
-                    self.sim_info['ground'], 
-                    self.sim_info['ground']
-                ], 
-                color='black', linewidth=2
-            )
+            # Draw ground (a plane at z = ground level)
+            x_range = np.linspace(min(self.x_states[0]) - 2.0, max(self.x_states[0]) + 2.0, 100)
+            y_range = np.linspace(min(self.x_states[1]) - 2.0, max(self.x_states[1]) + 2.0, 100)
+            X, Y = np.meshgrid(x_range, y_range)
+            Z = np.full_like(X, self.sim_info['ground'])
+            self.ax.plot_surface(X, Y, Z, color='gray', alpha=0.5)
+            self.ax.set_aspect('equal')
             
-            self.ax.plot(
-                [
-                    min(self.x_states[0]) - 2.0, min(self.x_states[0]) - 2.0 
-                ], 
-                [
-                    min(self.x_states[1]) - 2.0, max(self.x_states[1]) + 2.0 
-                ], 
-                color='black', linewidth=2
-            )
+    def set_sim_range(self):
+        # Draw ground (a plane at z = ground level)
+        x_range = np.linspace(
+            min(self.x_states[0]) - 2.0, 
+            max(self.x_states[0]) + 2.0, 
+            10
+        )
+        y_range = np.linspace(
+            min(self.y_states[1]) - 2.0, 
+            max(self.y_states[1]) + 2.0, 
+            10
+        )
+        X, Y = np.meshgrid(x_range, y_range)
+        Z = np.full_like(X, self.sim_info['ground'])
+        self.ax.plot_surface(X, Y, Z, color='gray', alpha=0.5)
+        
+        # Set plot limits and labels
+        self.ax.set_xlim(min(self.x_states[0]) - 2.0, max(self.x_states[0]) + 2.0)
+        self.ax.set_ylim(min(self.x_states[1]) - 2.0, max(self.x_states[1]) + 2.0)
+        self.ax.set_zlim(min(self.x_states[2]) - 0.1, max(self.x_states[2]) + 0.1)
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Z')
+        
+    def anime(
+        self, 
+        t, 
+        x_states, 
+        ms = 10,
+        mission='lala', 
+        sim_object='ball', 
+        sim_info={}, 
+        save=False, 
+        save_name='obj_sim'
+        ):
+        
+        self.sim_object = sim_object
+        self.x_states = x_states
+        self.sim_info = sim_info
+        self.anime_init()    
+            
+        ani = FuncAnimation(self.fig, self.update, frames=len(t), interval=ms, blit=True)
+        
+        if save:
+            ani.save( save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
+        
+        plt.title(mission)
+        plt.show()
+        
+    def update(self, frame):
+        if self.sim_object == 'ball':
+            # Update ball's position
+            self.ball.set_data([self.x_states[0][frame]], [self.x_states[1][frame]])
+            self.ball.set_3d_properties([self.x_states[2][frame]])  # Set z position
+
+        return self.ball,

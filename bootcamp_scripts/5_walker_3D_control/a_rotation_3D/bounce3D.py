@@ -4,14 +4,16 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from dynamics_bootcamp import Integrator
+from dynamics_bootcamp import Integrator as inte, Simulation3D as sim3D, RobotUtils as util
 
 x0 = 0
-x1 = 10
-dx0 = 2
-dx1 = 0
+x1 = 0
+x2 = 4
+dx0 = 0.2
+dx1 = -0.4
+dx2 = 1
 
-xstart = np.array([x0, x1, dx0, dx1])
+xstart = np.array([x0, x1, x2, dx0, dx1, dx2])
 
 c = 0.02
 m = 1
@@ -29,25 +31,25 @@ ground = 0
 # dx = f(x) = [dx0, dx1, ddx0, ddx1]
 
 def f(x):
+    v_norm = np.sqrt(x[3]**2 + x[4]**2 + x[5]**2)
     return np.array([
-        x[2], 
         x[3], 
-        - c / m * np.sqrt(x[2]**2 + x[3]**2) * x[2], 
-        - c / m * np.sqrt(x[2]**2 + x[3]**2) * x[3] - g
+        x[4],
+        x[5], 
+        - c / m * v_norm * x[3], 
+        - c / m * v_norm * x[4], 
+        - c / m * v_norm * x[5] - g
         ])
 
 t = np.arange(t_start, t_end, t_step)
 
-print(t.size)
-x0_all_euler = []
-x1_all_euler = []
-dx0_all_euler = []
-dx1_all_euler = []
 
 x0_all_rk4 = []
 x1_all_rk4 = []
+x2_all_rk4 = []
 dx0_all_rk4 = []
 dx1_all_rk4 = []
+dx2_all_rk4 = []
 
 event_thres = 1e-3
 
@@ -55,38 +57,34 @@ sample_factor = 10
 
 x_euler = xstart
 x_rk4 = xstart
+
 for t_ in t:
-    x_new_euler = Integrator().euler_forward(func=f,x=x_euler, h=t_step)
-    x_new_rk4 = Integrator().rk4(func=f,x=x_rk4, h=t_step)
-    
-    x0_all_euler.append(x_new_euler[0])
-    x1_all_euler.append(x_new_euler[1])
-    dx0_all_euler.append(x_new_euler[2])
-    dx1_all_euler.append(x_new_euler[3])
-    
+
+    x_new_rk4 = inte().rk4(func=f,x=x_rk4, h=t_step)
+
     x0_all_rk4.append(x_new_rk4[0])
     x1_all_rk4.append(x_new_rk4[1])
-    dx0_all_rk4.append(x_new_rk4[2])
-    dx1_all_rk4.append(x_new_rk4[3])
+    x2_all_rk4.append(x_new_rk4[2])
+    dx0_all_rk4.append(x_new_rk4[3])
+    dx1_all_rk4.append(x_new_rk4[4])
+    dx2_all_rk4.append(x_new_rk4[5])
     
-    x_euler = x_new_euler
     x_rk4 = x_new_rk4
     
-    if x_euler[1] - ground < -event_thres and x_euler[3] < 0:
-        x_euler[3] = (-1) * e * x_euler[3]
-    if x_rk4[1] - ground < -event_thres and x_rk4[3] < 0:
-        x_rk4[3] = (-1) * e * x_rk4[3]
+    if x_rk4[2] - ground < 0 and x_rk4[5] < 0:
+        x_rk4[5] = (-1) * e * x_rk4[5]
 
+# exit()
 
-Simulation2D().anime(
+sim3D().anime(
     t=t[::sample_factor], 
-    x_states=[x0_all_rk4[::sample_factor], x1_all_rk4[::sample_factor]], 
+    x_states=[x0_all_rk4[::sample_factor], x1_all_rk4[::sample_factor], x2_all_rk4[::sample_factor]], 
     ms=1000 * t_step * sample_factor,
     mission="Bounce", 
     sim_object="ball",
     sim_info={'ground':ground},
-    save=False,
-    save_name='bounce'
+    save=True,
+    save_name='bounce_3D'
 )
 
 exit()

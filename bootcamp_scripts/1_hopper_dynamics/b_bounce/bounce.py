@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from dynamics_bootcamp import Integrator
+from dynamics_bootcamp import Integrator as inte, Simulation2D as sim2D, RobotUtils as util
 
 x0 = 0
 x1 = 10
@@ -56,8 +56,8 @@ sample_factor = 10
 x_euler = xstart
 x_rk4 = xstart
 for t_ in t:
-    x_new_euler = Integrator().euler_forward(func=f,x=x_euler, h=t_step)
-    x_new_rk4 = Integrator().rk4(func=f,x=x_rk4, h=t_step)
+    x_new_euler = inte().euler_forward(func=f,x=x_euler, h=t_step)
+    x_new_rk4 = inte().rk4(func=f,x=x_rk4, h=t_step)
     
     x0_all_euler.append(x_new_euler[0])
     x1_all_euler.append(x_new_euler[1])
@@ -78,7 +78,7 @@ for t_ in t:
         x_rk4[3] = (-1) * e * x_rk4[3]
 
 
-Simulation2D().anime(
+sim2D().anime(
     t=t[::sample_factor], 
     x_states=[x0_all_rk4[::sample_factor], x1_all_rk4[::sample_factor]], 
     ms=1000 * t_step * sample_factor,
