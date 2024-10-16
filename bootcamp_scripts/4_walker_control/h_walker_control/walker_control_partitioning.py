@@ -5,6 +5,11 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics import Integrator as inte, RobotUtils as util
 
+# If ctrl_on = False, and perturb_on = True, then the robot will fail
+# Elif ctrl_on = True, and perturb_on = True, then the robot will move
+# Elif ctrl_on = False, and perturb_on = False, then the robot will move as limit cycle without control effort
+ctrl_on = True
+perturb_on = True
 
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
@@ -83,6 +88,7 @@ Kp_phidot = 8.0
 print(1000 * t_step * sample_factor)
 print()
 print("START")
+
 
 # zstar = [ 0.142821844397568  -0.320342245235108  -0.285643688795094   0.073672117908649];
 def f_single_stance_vanilla(x):
@@ -164,10 +170,11 @@ def control_partition_gen(x, x_ref):
     l = leg_l
     m = leg_m
     
+    if perturb_on:
+        x = x + util().generate_noise_matrix(n=4, m=1, mean=0, std_dev=0.01)
+    
     theta0 = x[0] 
     theta1 = x[1] 
-    
-    
     omega0 = x[2]
     omega1 = x[3]
     gam = slope_angle
@@ -336,7 +343,7 @@ def draw_anime(success):
         mission="Walk", 
         sim_object="walker",
         sim_info={'ground': ground,'slope_angle':slope_angle, 'leg_l':leg_l},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
@@ -389,22 +396,12 @@ def traj_setting():
     
     x_after_one_step = x_all_one_step[len(t_all_one_step) - 1]
     
-    print("x_start", x_start)
-    print("x_after_one_step", x_after_one_step)
-    print()
     qc_0 = x_start[1]
     qc_f = x_after_one_step[1]
     qcdot_0 = x_start[3]
     qcdot_f = x_after_one_step[3]
     t0 = 0
     tf = t_all_one_step[len(t_all_one_step) - 1]
-    
-    print(qc_0)
-    print(qc_f)
-    print(qcdot_0)
-    print(qcdot_f)
-    print(t0)
-    print(tf)
     
     A = np.array([
         [1, t0, t0**2, t0**3, t0**4, t0**5],
@@ -437,14 +434,21 @@ def get_ref(pp, tt, tf_one_step):
 p, tf_one_step = traj_setting()
 last_event = 0
 t_start = t
-x_rk4 = np.array([ 0.11263063 + 0.01, -0.22557703, -0.15939688, 0.02410867])
+x_rk4 = np.array([0.11263063, -0.22557703, -0.15939688, 0.02410867])
+
+if perturb_on:
+    x_rk4 = x_rk4 + util().generate_noise_matrix(n=4, m=1, mean=0, std_dev=0.01)
+
 while True:
     if fsm == 'single_stance':
         # integrate throughout single stance
         while True:
             x_ref_now = get_ref(p, t-t_start, tf_one_step)
-            u = control_partition_gen(x=x_rk4, x_ref=x_ref_now)
-            # print(u)
+            if ctrl_on:
+                u = control_partition_gen(x=x_rk4, x_ref=x_ref_now)
+            else:
+                u = np.array([0])
+            
             x_rk4_new = inte().rkdp(f_single_stance, x=x_rk4, u=u, h=t_step, ctrl_on=True)
             
             q0_all_rk4.append(x_rk4_new[0])

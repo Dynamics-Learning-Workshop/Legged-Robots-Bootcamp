@@ -48,6 +48,19 @@ class RobotUtils:
                 angle = angle + 2*np.pi
             
         return angle
+    
+    def generate_noise(self, mean, std_dev):
+
+        return np.random.normal(mean, std_dev, 1)[0]
+
+    def generate_noise_matrix(self, n, m, mean, std_dev):
+
+        if n == 1:
+            return np.random.normal(mean, std_dev, (m,))
+        elif m == 1:
+            return np.random.normal(mean, std_dev, (n,))
+        else:
+            np.random.normal(mean, std_dev, (n, m))
 
 class Integrator(RobotUtils):
     def __init__(self):

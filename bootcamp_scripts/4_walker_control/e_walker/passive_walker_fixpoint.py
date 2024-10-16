@@ -355,7 +355,7 @@ def f_lala(x):
 # print("END FIXPOINT SEARCH")
 # x_rk4 = x_lala
 
-x_rk4 = np.array([ 0.11263063 + 0.01, -0.22557703, -0.15939688, 0.02410867])
+x_rk4 = np.array([ 0.11263063, -0.22557703, -0.15939688, 0.02410867])
 
 print(np.linalg.norm(P(x_rk4) - x_rk4))
 # exit()
