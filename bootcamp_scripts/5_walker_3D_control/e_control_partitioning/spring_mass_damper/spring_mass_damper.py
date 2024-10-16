@@ -43,7 +43,7 @@ def draw_anime(success):
         save_name = "spring_mass_damper"
     else:
         save_name = "spring_mass_damper" + "_failed"
-    Integrator().anime(
+    Simulation2D().anime(
         t=t_all[::sample_factor], 
         x_states=[
             x0_all_rk4[::sample_factor]

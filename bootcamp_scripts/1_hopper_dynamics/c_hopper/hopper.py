@@ -78,7 +78,7 @@ def draw_anime(success):
         save_name = "hopper_" + str(no_of_jump)
     else:
         save_name = "hopper_" + str(no_of_jump) + "_failed"
-    Integrator().anime(
+    Simulation2D().anime(
         t=t_all[::sample_factor], 
         x_states=[
             x0_all_rk4[::sample_factor], 

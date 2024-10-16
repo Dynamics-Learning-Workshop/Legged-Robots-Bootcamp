@@ -5,7 +5,7 @@ import scipy.optimize as opt
 from scipy.integrate import solve_ivp
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-from dynamics_workshop import Integrator as inte, RobotUtils as util
+from dynamics_workshop import Integrator as inte, Simulation2D as sim2D, RobotUtils as util
 
 # basic parameters for a walker
 hip_m = 1.0 # kg, mass of hip
@@ -217,7 +217,7 @@ def draw_anime(success):
         save_name = "passive_walker_fixed_point" + "_failed"
     print('FPS:', 1000 / (1000 * t_step * sample_factor))
     print('ACC:', acc_factor)
-    inte().anime(
+    sim2D().anime(
         t=t_all[::sample_factor * acc_factor], 
         x_states=[
             q0_all_rk4[::sample_factor * acc_factor], 

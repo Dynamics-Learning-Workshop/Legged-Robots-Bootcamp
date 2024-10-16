@@ -62,32 +62,9 @@ class RobotUtils:
         else:
             np.random.normal(mean, std_dev, (n, m))
 
-class Integrator(RobotUtils):
+class Integrator():
     def __init__(self):
-        super().__init__()
-        self.ball = plt.Circle((0, 0), 0.2, color='red', fill=True)
-        self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
-        self.leg = None
-        
-        self.head = plt.Circle((0, 0), 0.2, color='black', fill=True)
-        self.leg1 = None
-        self.leg2 = None
-        self.hand1 = None
-        self.hand2 = None
-        self.neck = None
-
-        self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
-        self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
-        
-        self.x_states = []
-        
-        self.sim_object = 'ball'
-        self.sim_object = 'hopper'
-        self.sim_object = 'walker'
-        self.sim_info = {'ground':0, 'slope_angle':0, 'leg_l':0}
-        
-        self.fig = None
-        self.ax = None
+        pass
     
     def rk4(self, func, x, h, u=0, ctrl_on=False):
         
@@ -104,8 +81,7 @@ class Integrator(RobotUtils):
             
             
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
-
-    
+   
     def rkdp(self, func, x, h, u=0, ctrl_on=False, events=None):
         a21 = 1 / 5
         a31, a32 = 3 / 40, 9 / 40
@@ -138,35 +114,35 @@ class Integrator(RobotUtils):
             
         return x + h * B @ k
 
-    def adaptive_rk4(self, func, x, u, h, ctrl_on=True, events=None):
-        error_estimate = 0.01  # Set a threshold for error
-        while True:
-            k1 = func(x, u) * h
-            k2 = func(x + k1 / 2, u) * h
-            k3 = func(x + k2 / 2, u) * h  
-            k4 = func(x + k3, u) * h
-            
-            # RK4 step
-            x_new = x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
-            
-            # Error estimation (using a coarser step, e.g., h/2)
-            h_half = h / 2
-            k1_half = func(x, u) * h_half
-            k2_half = func(x + k1_half / 2, u) * h_half
-            k3_half = func(x + k2_half / 2, u) * h_half  
-            k4_half = func(x + k3_half, u) * h_half
-            
-            x_half = x + (k1_half + 2 * k2_half + 2 * k3_half + k4_half) / 6
-            
-            # Estimate error
-            error = np.linalg.norm(x_new - x_half)
-            if error < error_estimate:
-                break  # Accept step if error is small enough
-            h /= 2  # Reduce step size and retry
-        return x_new
-    
     def euler_forward(self, func, x, h):
         return x + h * func(x)
+         
+class Simulation2D(RobotUtils):
+    def __init__(self):
+        super().__init__()   
+        self.ball = plt.Circle((0, 0), 0.2, color='red', fill=True)
+        self.foot_circle = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        self.leg = None
+        
+        self.head = plt.Circle((0, 0), 0.2, color='black', fill=True)
+        self.leg1 = None
+        self.leg2 = None
+        self.hand1 = None
+        self.hand2 = None
+        self.neck = None
+
+        self.foot1 = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        self.foot2 = plt.Circle((0, 0), 0.05, color='green', fill=True)
+        
+        self.x_states = []
+        
+        self.sim_object = 'ball'
+        self.sim_object = 'hopper'
+        self.sim_object = 'walker'
+        self.sim_info = {'ground':0, 'slope_angle':0, 'leg_l':0}
+        
+        self.fig = None
+        self.ax = None
         
     def anime_init(self):
         self.fig, self.ax = plt.subplots()
@@ -421,15 +397,13 @@ class Integrator(RobotUtils):
         self.sim_info = sim_info
         self.anime_init()    
             
-    
         ani = FuncAnimation(self.fig, self.update, frames=len(t), interval=ms, blit=True)
         if save:
             ani.save( save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
             
         plt.title(mission)
         plt.show()
-        
-    
+           
     def update(self, frame):
         if self.sim_object == 'ball':
             self.ball.center = (self.x_states[0][frame], self.x_states[1][frame])
@@ -608,4 +582,35 @@ class Integrator(RobotUtils):
         end_effector = T_B1_2_I  @ np.array([self.sim_info['l1'], 0, 1])
         
         return fixation, end_effector[0:2]
+    
+class Simulation3D(RobotUtils):
+    def __init__(self):
+        super().__init__() 
         
+    def anime_init(self):
+        if self.sim_object == '3Dball':
+            # draw ball
+            self.ball = plt.Circle((self.x_states[0][0], self.x_states[1][0]), 0.2, color='red', fill=True)
+            self.ax.add_patch(self.ball)
+            
+            # draw ground
+            self.ax.plot(
+                [
+                    min(self.x_states[0]) - 2.0, max(self.x_states[0]) + 2.0 
+                ], 
+                [
+                    self.sim_info['ground'], 
+                    self.sim_info['ground']
+                ], 
+                color='black', linewidth=2
+            )
+            
+            self.ax.plot(
+                [
+                    min(self.x_states[0]) - 2.0, min(self.x_states[0]) - 2.0 
+                ], 
+                [
+                    min(self.x_states[1]) - 2.0, max(self.x_states[1]) + 2.0 
+                ], 
+                color='black', linewidth=2
+            )

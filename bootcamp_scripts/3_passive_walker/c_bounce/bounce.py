@@ -78,7 +78,7 @@ for t_ in t:
         x_rk4[3] = (-1) * e * x_rk4[3]
 
 
-Integrator().anime(
+Simulation2D().anime(
     t=t[::sample_factor], 
     x_states=[x0_all_rk4[::sample_factor], x1_all_rk4[::sample_factor]], 
     ms=1000 * t_step * sample_factor,
