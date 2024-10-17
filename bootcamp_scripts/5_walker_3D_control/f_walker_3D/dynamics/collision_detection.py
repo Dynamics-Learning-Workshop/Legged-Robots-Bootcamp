@@ -175,54 +175,25 @@ T_RK_2_RHP = T_ZRM(u,r,pitch_lh)
 
 
 # POSITION VECTORS
-p_B = hip_mid # position of base
 
 T_UY_2_I = T_O_2_I @ T_UR_2_O @ T_UP_2_UR @ T_UY_2_UP
 # from upper body (yaw) {U} (yaw) to {I}
-p_H = T_UY_2_I @ sp.Matrix([0,0,l0,1]) 
-# position of head
 
 # left
 T_LHP_2_I = T_UY_2_I @ T_LHY_2_UY @ T_LHR_2_LHY @ T_LHP_2_LHR 
 # from left-hip (pitch) {LH} (yaw) to {I}
-p_LH = T_LHP_2_I @ sp.Matrix([0,w,0,1]) 
-# position of left hip
-
 T_LK_2_I = T_LHP_2_I @ T_LK_2_LHP
 # from left-knee (pitch) {LK} (yaw) to {I}
-p_LK = T_LK_2_I @ sp.Matrix([0,w,-l1,1])
-# position of left knee (topology after joint knee)
 p_LA = T_LK_2_I @ sp.Matrix([0,w,-l1,1])
 # position of left ankle
 
 # right
 T_RHP_2_I = T_UY_2_I @ T_RHY_2_UY @ T_RHR_2_RHY @ T_RHP_2_RHR 
 # from right-hip (pitch) {RH} (yaw) to {I}
-p_RH = T_RHP_2_I @ sp.Matrix([0,w,0,1]) 
-# position of right hip
-
 T_RK_2_I = T_RHP_2_I @ T_RK_2_RHP
 # from right-knee (pitch) {RK} (yaw) to {I}
-p_RK = T_RK_2_I @ sp.Matrix([0,w,-l1,1])
-# position of right knee (topology after joint knee)
 p_RA = T_RK_2_I @ sp.Matrix([0,w,-l1,1])
 # position of right ankle
 
-# center of masses
-p_Torso = T_UY_2_I @ sp.Matrix([0,0,l0/2,1]) 
-# COM of torso
-p_Thigh_L = T_LHP_2_I @ sp.Matrix([0,w,-l1/2,1]) 
-p_Thigh_L = T_LK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
-p_Thigh_R = T_RHP_2_I @ sp.Matrix([0,w,-l1/2,1])
-p_Thigh_R = T_RK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
-
-pos_hip_l_stance_init = -p_LA.subs([(x,0), (y,0), (z,0)])
-pos_hip_r_stance_init = -p_RA.subs([(x,0), (y,0), (z,0)])
-
-# hip_mid + p_LA = ankle position
-# when start, ankle position is on ground, and set this as the starting point and infer the rest
-
-# we then export this to a .py
+print(sp.simplify(p_LA[2]-p_RA[2]))
 print('END')
-
-# WE START DYNAMICS HERE!!!

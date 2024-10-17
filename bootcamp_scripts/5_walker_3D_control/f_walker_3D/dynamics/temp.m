@@ -58,6 +58,7 @@ u = [0 0 1];
 T45l = revolute(psi_lh,r,u);
 R45l = T45l(1:3,1:3);
 omega_45l = psi_lhd*u';
+
 %R15l = R14*R45l;
 r = [0 w 0];
 u = [1 0 0];
@@ -136,6 +137,8 @@ f_pos_hip = matlabFunction(pos_hip_l_stance, pos_hip_r_stance,...
 disp(' ');
 disp(['gstop = ',char(simplify(LA(3)-RA(3))),';']);
 disp(' ');
+
+===========================================================================
 omega_13 = omega_12 + R12*omega_23;
 R13 = R12*R23;
 omega_14 = omega_13 + R13*omega_34;
