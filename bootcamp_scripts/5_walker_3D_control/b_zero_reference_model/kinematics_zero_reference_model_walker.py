@@ -84,6 +84,7 @@ C1_I = sp.Matrix([x,y,z])
 C1_I = C1_I.subs([(z,0)])
 T_O_2_I = sp.Matrix([[I,C1_I],
                      [0,0,0,1]])
+
 T_B1_2_O = sp.simplify(T_ZRM.subs([(ux,0), (uy,0), (uz,1), (phi, theta0), (rx, 0), (ry, 0), (rz, 0)]))
 T_B2_2_B1 = sp.simplify(T_ZRM.subs([(ux,0), (uy,0), (uz,1), (phi, theta1), (rx, 0), (ry, l), (rz, 0)]))
 

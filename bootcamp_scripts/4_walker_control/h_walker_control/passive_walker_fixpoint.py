@@ -350,15 +350,19 @@ def f_lala(x):
 
 
 # print(x_rk4)
-# x_lala = opt.fsolve(f_lala, x_rk4, xtol=1e-6,)
-# print(x_lala)
+# sol, info, ier, mesg = opt.fsolve(f_lala, x_rk4, xtol=1e-6,full_output=True)
+# print(sol)
 # print("END FIXPOINT SEARCH")
-# x_rk4 = x_lala
+# x_rk4 = sol
+
+# print("Solution:", sol)
+# print("Number of function evaluations:", info["nfev"])
+# print("Exit flag:", ier)
+# print("Exit message:", mesg)
+# print(np.linalg.norm(P(x_rk4) - x_rk4))
+# exit()
 
 x_rk4 = np.array([ 0.11263063, -0.22557703, -0.15939688, 0.02410867])
-
-print(np.linalg.norm(P(x_rk4) - x_rk4))
-# exit()
 
 last_event = 0
 while True:

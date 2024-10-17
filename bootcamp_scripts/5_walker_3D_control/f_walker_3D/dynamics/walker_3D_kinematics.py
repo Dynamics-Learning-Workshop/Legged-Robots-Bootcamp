@@ -94,21 +94,81 @@ R_UR_2_O = T_UR_2_O[0:2][0:2] # from upperbody {U} (roll) to ZRM {O}
     # pitch
 r = sp.Matrix([0,0,0])
 u = sp.Matrix([0,1,0])
-T_UP_2_O = T_ZRM(u,r,pitch) # from upperbody {U} (pitch) to ZRM {O}
-R_UP_2_O = T_UP_2_O[0:2,0:2] # from upperbody {U} (pitch) to ZRM {O}
+T_UP_2_UR = T_ZRM(u,r,pitch) 
+# from upperbody {U} (pitch) to from upperbody {U} (roll)
+R_UP_2_UR = T_UP_2_UR[0:2,0:2] 
+# from upperbody {U} (pitch) to from upperbody {U} (roll)
 
     # yaw
 r = sp.Matrix([0,0,0])
 u = sp.Matrix([0,0,1])
-T_UY_2_O = T_ZRM(u,r,yaw) # from upperbody {U} (yaw) to ZRM {O}
-R_UY_2_O = T_UY_2_O[0:2,0:2] # from upperbody {U} (yaw) to ZRM {O}
+T_UY_2_UP = T_ZRM(u,r,yaw) 
+# from upperbody {U} (yaw) to upperbody {U} (pitch)
+R_UY_2_UP = T_UY_2_UP[0:2,0:2] 
+# from upperbody {U} (yaw) to upperbody {U} (pitch)
 
 # left-side
 # yaw -> roll -> pitch
+    # yaw
 r = sp.Matrix([0,w,0])
 u = sp.Matrix([0,0,1])
-T_LHY = T_ZRM(u,r,yaw_lh) # from left-hip {LH} (yaw) to ZRM {0}
-R_LHY = T_LHY[0:2,0:2] # from left-hip {LH} (yaw) to ZRM {0}
+T_LHY_2_UY = T_ZRM(u,r,yaw_lh) 
+# from left-hip {LH} (yaw) to upperbody {U} (yaw)
+R_LHY_2_UY = T_LHY_2_UY[0:2,0:2] 
+# from left-hip {LH} (yaw) to upperbody {U} (yaw)
+
+    # roll
+r = sp.Matrix([0,w,0])
+u = sp.Matrix([1,0,0])
+T_LHR_2_LHY = T_ZRM(u,r,roll_lh) 
+# from left-hip {LH} (roll) to left-hip {LH} (yaw)
+R_LHR_2_LHY = T_LHR_2_LHY[0:2,0:2]
+# from left-hip {LH} (roll) to left-hip {LH} (yaw)
+
+    # pitch
+r = sp.Matrix([0,w,0])
+u = sp.Matrix([0,-1,0])
+T_LHP_2_LHR = T_ZRM(u,r,pitch_lh) 
+# from left-hip {LH} (pitch) to left-hip {LH} (roll)
+R_LHP_2_LHR = T_LHP_2_LHR[0:2,0:2]
+# from left-hip {LH} (pitch) to left-hip {LH} (roll)
+
+    # knee
+r = sp.Matrix([0,w,-l1])
+u = sp.Matrix([0,-1,0])
+T_LK_2_LHP = T_ZRM(u,r,pitch_lh) 
+# from left-knee {LH} to left-hip {LH} (pitch)
+    
 
 # right-side
 # yaw -> roll -> pitch
+# yaw -> roll -> pitch
+    # yaw
+r = sp.Matrix([0,w,0])
+u = sp.Matrix([0,0,1])
+T_LHY_2_UY = T_ZRM(u,r,yaw_lh) 
+# from left-hip {LH} (yaw) to upperbody {U} (yaw)
+R_LHY_2_UY = T_LHY_2_UY[0:2,0:2] 
+# from left-hip {LH} (yaw) to upperbody {U} (yaw)
+
+    # roll
+r = sp.Matrix([0,w,0])
+u = sp.Matrix([1,0,0])
+T_LHR_2_LHY = T_ZRM(u,r,roll_lh) 
+# from left-hip {LH} (roll) to left-hip {LH} (yaw)
+R_LHR_2_LHY = T_LHR_2_LHY[0:2,0:2]
+# from left-hip {LH} (roll) to left-hip {LH} (yaw)
+
+    # pitch
+r = sp.Matrix([0,w,0])
+u = sp.Matrix([0,-1,0])
+T_LHP_2_LHR = T_ZRM(u,r,pitch_lh) 
+# from left-hip {LH} (pitch) to left-hip {LH} (roll)
+R_LHP_2_LHR = T_LHP_2_LHR[0:2,0:2]
+# from left-hip {LH} (pitch) to left-hip {LH} (roll)
+
+    # knee
+r = sp.Matrix([0,w,-l1])
+u = sp.Matrix([0,-1,0])
+T_LK_2_LHP = T_ZRM(u,r,pitch_lh) 
+# from left-knee {LH} to left-hip {LH} (pitch)
