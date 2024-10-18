@@ -188,8 +188,8 @@ def main():
 
     var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk, w, l0, l1, l2]
     # hip_mid @ init
-    get_p_Hip_L_init = -p_LA # with x = 0, y = 0, z = 0
-    get_p_Hip_R_init = -p_RA # with x = 0, y = 0, z = 0
+    p_Hip_L_init = -p_LA # with x = 0, y = 0, z = 0
+    p_Hip_R_init = -p_RA # with x = 0, y = 0, z = 0
     # hip_mid + p_LA = ankle position
     # when start, ankle position is on ground, and set this as the starting point and infer the rest
     
@@ -209,8 +209,8 @@ def main():
     gen_func_file(expr_name='p_Calf_L', expr=p_Calf_L, var=var)
     gen_func_file(expr_name='p_Calf_R', expr=p_Calf_R, var=var)
     
-    gen_func_file(expr_name='get_p_Hip_L_init', expr=get_p_Hip_L_init, var=var)
-    gen_func_file(expr_name='get_p_Hip_R_init', expr=get_p_Hip_R_init, var=var)
+    gen_func_file(expr_name='p_Hip_L_init', expr=p_Hip_L_init, var=var)
+    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var)
     
     t_end = time.time()
     print('END, TIME: ', t_end - t_now)

@@ -180,12 +180,12 @@ def main():
     p_Torso = T_UY_2_I @ sp.Matrix([0,0,l0/2,1]) 
     # COM of torso
     p_Thigh_L = T_LHP_2_I @ sp.Matrix([0,w,-l1/2,1]) 
-    p_Thigh_L = T_LK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
+    p_Calf_L = T_LK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
     p_Thigh_R = T_RHP_2_I @ sp.Matrix([0,w,-l1/2,1])
-    p_Thigh_R = T_RK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
+    p_Calf_R = T_RK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
 
-    pos_hip_l_stance_init = -p_LA.subs([(x,0), (y,0), (z,0)])
-    pos_hip_r_stance_init = -p_RA.subs([(x,0), (y,0), (z,0)])
+    get_p_Hip_L_init = -p_LA # with x = 0, y = 0, z = 0
+    get_p_Hip_R_init = -p_RA # with x = 0, y = 0, z = 0
 
     # hip_mid + p_LA = ankle position
     # when start, ankle position is on ground, and set this as the starting point and infer the rest
