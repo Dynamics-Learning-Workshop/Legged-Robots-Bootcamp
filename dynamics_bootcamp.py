@@ -1,6 +1,8 @@
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import numpy as np
+from time import strftime, localtime
+import time 
 
 class RobotUtils:
     def __init__(self):
@@ -724,3 +726,45 @@ class Simulation3D(RobotUtils):
         x_end_I = R @ x_end_B
         
         return x_end_I
+    
+class Modelling():
+    def __init__(self):
+        pass
+    
+    def gen_func(
+        self,
+        file_name, 
+        func_name, 
+        arguments, 
+        expression, 
+        return_object
+    ):
+        expr = []
+        n = expression.shape[0]
+        m = expression.shape[1]
+        
+        array_syntax = 'np.array(['  
+        if n==1 or m==1:
+            for i in range(n):
+                array_syntax = array_syntax + str(expression[i,0])
+                if i < n - 1:
+                    array_syntax = array_syntax + ', '
+                
+            array_syntax = array_syntax + '])'   
+        
+        t = strftime('%Y-%m-%d %H:%M:%S', localtime(time.time()))
+
+        function_definition = f"""
+import numpy as np
+from sympy import *
+# AUTO-GENERATE @ {t}
+
+def {func_name}{arguments}:
+
+    {return_object} = {array_syntax}  
+
+    return {return_object}
+"""
+        file_name = './funcs/'+file_name
+        with open(file_name, "w") as f:
+            f.write(function_definition.strip())  # Use .strip() to remove leading/trailing whitespace

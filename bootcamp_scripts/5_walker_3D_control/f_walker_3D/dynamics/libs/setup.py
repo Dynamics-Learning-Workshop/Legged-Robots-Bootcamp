@@ -3,5 +3,5 @@ from setuptools import setup
 from Cython.Build import cythonize
 
 setup(
-    ext_modules=cythonize("T_ZRM_F.pyx"),
+    ext_modules=cythonize("cython_acc_func.pyx"),
 )
