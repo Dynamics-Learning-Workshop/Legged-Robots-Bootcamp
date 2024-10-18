@@ -212,6 +212,10 @@ def main():
     gen_func_file(expr_name='p_Hip_L_init', expr=p_Hip_L_init, var=var)
     gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var)
     
+    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var)
+    
+    gen_func_file(expr_name='collision', expr=p_LA[2]-p_RA[2], var=var)
+        
     t_end = time.time()
     print('END, TIME: ', t_end - t_now)
 

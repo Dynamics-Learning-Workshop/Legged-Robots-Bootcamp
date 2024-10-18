@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from time import strftime, localtime
 import time 
+import sympy as sp
 
 class RobotUtils:
     def __init__(self):
@@ -739,18 +740,21 @@ class Modelling():
         expression, 
         return_object
     ):
-        expr = []
-        n = expression.shape[0]
-        m = expression.shape[1]
-        
         array_syntax = 'np.array(['  
-        if n==1 or m==1:
-            for i in range(n):
-                array_syntax = array_syntax + str(expression[i,0])
-                if i < n - 1:
-                    array_syntax = array_syntax + ', '
-                
-            array_syntax = array_syntax + '])'   
+        
+        if isinstance(expression, sp.Basic):
+            array_syntax = array_syntax + str(expression)
+        else:
+            n = expression.shape[0]
+            m = expression.shape[1]
+        
+            if n==1 or m==1:
+                for i in range(n):
+                    array_syntax = array_syntax + str(expression[i,0])
+                    if i < n - 1:
+                        array_syntax = array_syntax + ', '
+                    
+        array_syntax = array_syntax + '])'   
         
         t = strftime('%Y-%m-%d %H:%M:%S', localtime(time.time()))
 
