@@ -778,11 +778,7 @@ class Simulation3D(RobotUtils, Walker3DModelling):
             
             self.ball1, = self.ax.plot([],[],[], 'o', color='red', markersize=10)
             self.ball2, = self.ax.plot([],[],[], 'o', color='green', markersize=10)
-            
             self.rod, = self.ax.plot([], [], [], color='blue', linewidth=5)
-            
-            self.rod.set_data([], [])
-            self.rod.set_3d_properties([])
             
             self.set_sim_range(
                 min(self.x_states[0])-self.sim_info['rod_length']-0.5,
@@ -791,6 +787,38 @@ class Simulation3D(RobotUtils, Walker3DModelling):
                 max(self.x_states[1])+self.sim_info['rod_length']+0.5,
                 min(self.x_states[2])-self.sim_info['rod_length']-0.5,
                 max(self.x_states[2])+self.sim_info['rod_length']+0.5,
+            )
+            
+        elif self.sim_object == '3Dwalker':
+            self.head, = self.ax.plot([],[],[], 'o', color='red', markersize=10)
+            self.hip, = self.ax.plot([],[],[], 'o', color='red', markersize=10)
+            self.hipl, = self.ax.plot([],[],[], 'o', color='cyan', markersize=10)
+            self.hipr, = self.ax.plot([],[],[], 'o', color='orange', markersize=10)
+            self.kneel, = self.ax.plot([],[],[], 'o', color='cyan', markersize=10)
+            self.kneer, = self.ax.plot([],[],[], 'o', color='orange', markersize=10)
+            self.anklel, = self.ax.plot([],[],[], 'o', color='cyan', markersize=10)
+            self.ankler, = self.ax.plot([],[],[], 'o', color='orange', markersize=10)
+            
+            self.torso_com, = self.ax.plot([],[],[], 'o', color='black', markersize=12)
+            self.thighl_com, = self.ax.plot([],[],[], 'o', color='black', markersize=12)
+            self.thighr_com, = self.ax.plot([],[],[], 'o', color='black', markersize=12)
+            self.calfl_com, = self.ax.plot([],[],[], 'o', color='black', markersize=12)
+            self.calfr_com, = self.ax.plot([],[],[], 'o', color='black', markersize=12)
+            
+            self.torso, = self.ax.plot([], [], [], color='gray', linewidth=5)
+            self.hip, = self.ax.plot([], [], [], color='gray', linewidth=5)
+            self.thighl, = self.ax.plot([], [], [], color='blue', linewidth=5)
+            self.thighr, = self.ax.plot([], [], [], color='blue', linewidth=5)
+            self.calfl, = self.ax.plot([], [], [], color='pink', linewidth=5)
+            self.calfr, = self.ax.plot([], [], [], color='pink', linewidth=5)
+            
+            self.set_sim_range(
+                min(self.x_states[0])-self.sim_info['w']-0.5,
+                max(self.x_states[0])+self.sim_info['w']+0.5,
+                min(self.x_states[1])-self.sim_info['w']-0.5,
+                max(self.x_states[1])+self.sim_info['w']+0.5,
+                min(self.x_states[2])-self.sim_info['l0']-0.05,
+                max(self.x_states[2])+self.sim_info['l0']+0.5,
             )
             
     def set_sim_range(self, xmin, xmax, ymin, ymax, zmin, zmax):
@@ -862,8 +890,79 @@ class Simulation3D(RobotUtils, Walker3DModelling):
             self.ball2.set_3d_properties([rod_end_now[2]])  
             
             return self.ball1, self.ball2, self.rod,
-
-    
+        
+        elif self.sim_object == '3Dwalker':
+            q_now = np.array([self.x_states[0][frame], self.x_states[1][frame], self.x_states[2][frame], self.x_states[3][frame], self.x_states[4][frame], self.x_states[5][frame], self.x_states[6][frame], self.x_states[7][frame], self.x_states[8][frame], self.x_states[9][frame], self.x_states[10][frame], self.x_states[11][frame], self.x_states[12][frame], self.x_states[13][frame]])
+            param = np.array([self.sim_info['w'], self.sim_info['l0'], self.sim_info['l1'], self.sim_info['l2']])
+            
+            # get points
+            p_H = self.get_p_H(*q_now, *param)
+            p_B = self.get_p_B(*q_now, *param)
+            
+            p_LH = self.get_p_LH(*q_now, *param)
+            p_RH = self.get_p_RH(*q_now, *param)
+            
+            p_LK = self.get_p_LK(*q_now, *param)
+            p_RK = self.get_p_RK(*q_now, *param)
+            
+            p_LA = self.get_p_LA(*q_now, *param)
+            p_RA = self.get_p_RA(*q_now, *param)
+            
+            p_Torso = self.get_p_Torso(*q_now, *param)
+            p_Thigh_L = self.get_p_Thigh_L(*q_now, *param)
+            p_Thigh_R = self.get_p_Thigh_R(*q_now, *param)
+            p_Calf_L = self.get_p_Calf_L(*q_now, *param)
+            p_Calf_R = self.get_p_Calf_R(*q_now, *param)
+            
+            # set dots
+            self.head.set_data([p_H[0]],[p_H[1]])
+            self.head.set_3d_properties([p_H[2]])
+            
+            self.hip.set_data([p_B[0]],[p_B[1]])
+            self.hip.set_3d_properties([p_B[2]])
+            
+            self.hipl.set_data([p_LH[0]],[p_LH[1]])
+            self.hipl.set_3d_properties([p_LH[2]])
+            self.hipr.set_data([p_RH[0]],[p_RH[1]])
+            self.hipr.set_3d_properties([p_RH[2]])
+            
+            self.kneel.set_data([p_LK[0]],[p_LK[1]])
+            self.kneel.set_3d_properties([p_LK[2]])
+            self.kneer.set_data([p_RK[0]],[p_RK[1]])
+            self.kneer.set_3d_properties([p_RK[2]])
+            
+            self.anklel.set_data([p_LA[0]],[p_LA[1]])
+            self.anklel.set_3d_properties([p_LA[2]])
+            self.ankler.set_data([p_RA[0]],[p_RA[1]])
+            self.ankler.set_3d_properties([p_RA[2]])
+            
+            self.torso_com.set_data([p_Torso[0]],[p_Torso[1]])
+            self.torso_com.set_3d_properties([p_Torso[2]])
+            self.thighl_com.set_data([p_Thigh_L[0]],[p_Thigh_L[1]])
+            self.thighl_com.set_3d_properties([p_Thigh_L[2]])
+            self.thighr_com.set_data([p_Thigh_R[0]],[p_Thigh_R[1]])
+            self.thighr_com.set_3d_properties([p_Thigh_R[2]])
+            self.calfl_com.set_data([p_Calf_L[0]],[p_Calf_L[1]])
+            self.calfl_com.set_3d_properties([p_Calf_L[2]])
+            self.calfr_com.set_data([p_Calf_R[0]],[p_Calf_R[1]])
+            self.calfr_com.set_3d_properties([p_Calf_R[2]])
+            
+            # set lines
+            self.torso.set_data([p_H[0], p_B[0]], [p_H[1], p_B[1]])
+            self.torso.set_3d_properties([p_H[2], p_B[2]])
+            self.hip.set_data([p_LH[0], p_RH[0]], [p_LH[1], p_RH[1]])
+            self.hip.set_3d_properties([p_LH[2], p_RH[2]])
+            self.thighl.set_data([p_LH[0], p_LK[0]], [p_LH[1], p_LK[1]])
+            self.thighl.set_3d_properties([p_LH[2], p_LK[2]])
+            self.thighr.set_data([p_RH[0], p_RK[0]], [p_RH[1], p_RK[1]])
+            self.thighr.set_3d_properties([p_RH[2], p_RK[2]])
+            self.calfl.set_data([p_LK[0], p_LA[0]], [p_LK[1], p_LA[1]])
+            self.calfl.set_3d_properties([p_LK[2], p_LA[2]])
+            self.calfr.set_data([p_RK[0], p_RA[0]], [p_RK[1], p_RA[1]])
+            self.calfr.set_3d_properties([p_RK[2], p_RA[2]])
+            
+            return self.head, self.hip, self.hipl, self.hipr, self.kneel, self.kneer, self.anklel, self.ankler, self.torso_com, self.thighl_com, self.thighr_com, self.calfl_com, self.calfr_com, self.torso, self.hip, self.thighl, self.thighr, self.calfl, self.calfr,
+        
     def get_rod_cartesian(self, x_rod_start, pitch, yaw):
         x_rod_end = self.get_rod_end(pitch, yaw, self.sim_info['rod_length']) + x_rod_start
         return x_rod_start, x_rod_end

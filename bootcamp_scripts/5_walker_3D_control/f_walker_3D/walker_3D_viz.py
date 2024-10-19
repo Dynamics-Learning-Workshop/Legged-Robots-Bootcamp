@@ -31,8 +31,6 @@ param = np.array([w, l0, l1, l2])
 
 x,y,z,roll,pitch,yaw, roll_lh,pitch_lh,yaw_lh, roll_rh,pitch_rh,yaw_rh, pitch_lk, pitch_rk = q
 
-# print(x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk)
-
 p_H = get_p_H(*q,*param) # head
 print(p_H)
 p_B = get_p_B(*q,*param)
@@ -70,7 +68,71 @@ print("==========")
 p_Hip_I = get_p_Hip_L_init(0,0,0,*q[3:],*param)
 print(p_Hip_I)
 
-p_Hip_I = get_p_Hip_R_init(0,0,0,*q[3:],*param)
-print(p_Hip_I)
+q[0:3] = p_Hip_I
 
+print(q[0:3])
+
+t_all = []
+t_all.append(0)
+
+x0_all_rk4 = []
+x1_all_rk4 = []
+x2_all_rk4 = []
+x3_all_rk4 = []
+x4_all_rk4 = []
+x5_all_rk4 = []
+x6_all_rk4 = []
+x7_all_rk4 = []
+x8_all_rk4 = []
+x9_all_rk4 = []
+x10_all_rk4 = []
+x11_all_rk4 = []
+x12_all_rk4 = []
+x13_all_rk4 = []
+
+def save_data(q):
+    x0_all_rk4.append(q[0])
+    x1_all_rk4.append(q[1])
+    x2_all_rk4.append(q[2])
+    x3_all_rk4.append(q[3])
+    x4_all_rk4.append(q[4])
+    x5_all_rk4.append(q[5])
+    x6_all_rk4.append(q[6])
+    x7_all_rk4.append(q[7])
+    x8_all_rk4.append(q[8])
+    x9_all_rk4.append(q[9])
+    x10_all_rk4.append(q[10])
+    x11_all_rk4.append(q[11])
+    x12_all_rk4.append(q[12])
+    x13_all_rk4.append(q[13])
+    
+    return
+save_data(q)
+# exit()
+
+sim3D().anime(
+    t=t_all,
+    x_states=[
+        x0_all_rk4,
+        x1_all_rk4,
+        x2_all_rk4,
+        x3_all_rk4,
+        x4_all_rk4,
+        x5_all_rk4,
+        x6_all_rk4,
+        x7_all_rk4,
+        x8_all_rk4,
+        x9_all_rk4,
+        x10_all_rk4,
+        x11_all_rk4,
+        x12_all_rk4,
+        x13_all_rk4,
+    ],
+    ms=10,
+    mission='Walk',
+    sim_object='3Dwalker',
+    sim_info={'w': w, 'l0': l0, 'l1': l1, 'l2': l2},
+    save=True,
+    save_name='3Dwalker'
+)
 

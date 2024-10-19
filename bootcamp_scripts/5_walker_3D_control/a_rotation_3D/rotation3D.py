@@ -72,7 +72,7 @@ sim3D().anime(
     mission="Rotate", 
     sim_object="rod",
     sim_info={'rod_radius': 0.2, 'rod_length': l}, 
-    save=True,
+    save=False,
     save_name='rotate_3D'
 )
 
