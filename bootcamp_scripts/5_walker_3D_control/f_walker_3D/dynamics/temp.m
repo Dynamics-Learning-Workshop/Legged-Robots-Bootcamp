@@ -35,68 +35,78 @@ T01 = [1 0 0 x;
        0 0 0 1];
 R01 = T01(1:3,1:3);
 
+%roll
 r = [0 0 0];
 u = [1 0 0];
-T12 = revolute(phi,r,u); %yaw
-R12 = T12(1:3,1:3);
-omega_12 = phid*u';
+T12 = revolute(phi,r,u); %T_UR_2_O
+R12 = T12(1:3,1:3); %R_UR_2_O
+omega_12 = phid*u'; %omega_UR_2_O
 
+%pitch
 r = [0 0 0];
 u = [0 1 0];
-T23 = revolute(theta,r,u); %pitch
-R23 = T23(1:3,1:3);
-omega_23 = thetad*u';
+T23 = revolute(theta,r,u); %T_UP_2_UR
+R23 = T23(1:3,1:3); %R_UP_2_UR
+omega_23 = thetad*u'; %omega_UP_2_UR
+
+%yaw
 r = [0 0 0];
 u = [0 0 1];
-T34 = revolute(psi,r,u); %roll
-R34 = T34(1:3,1:3);
-omega_34 = psid*u';
+T34 = revolute(psi,r,u); %T_UY_2_UP
+R34 = T34(1:3,1:3); %R_UY_2_UP
+omega_34 = psid*u'; %omega_UY_2_UP
 
 %%%% left side %%%
 r = [0 w 0];
 u = [0 0 1];
-T45l = revolute(psi_lh,r,u);
-R45l = T45l(1:3,1:3);
-omega_45l = psi_lhd*u';
+T45l = revolute(psi_lh,r,u); %T_LHY_2_UY
+R45l = T45l(1:3,1:3); %R_LHY_2_UY
+omega_45l = psi_lhd*u'; %omega_LHY_2_UY
 
 %R15l = R14*R45l;
 r = [0 w 0];
 u = [1 0 0];
-T56l = revolute(phi_lh,r,u);
-R56l = T56l(1:3,1:3);
-omega_56l = phi_lhd*u';
+T56l = revolute(phi_lh,r,u); %T_LHR_2_LHY
+R56l = T56l(1:3,1:3); %R_LHR_2_LHY
+omega_56l = phi_lhd*u'; %omega_LHR_2_LHY
+
 r = [0 w 0];
 u = [0 -1 0];
-T67l = revolute(theta_lh,r,u);
-R67l = T67l(1:3,1:3);
-omega_67l = theta_lhd*u';
+T67l = revolute(theta_lh,r,u); %T_LHP_2_LHR
+R67l = T67l(1:3,1:3); %R_LHP_2_LHR
+omega_67l = theta_lhd*u'; %omega_LHP_2_LHR
+
 r = [0 w -l1];
 u = [0 -1 0];
-T78l = revolute(theta_lk,r,u);
-R78l = T78l(1:3,1:3);
-omega_78l = theta_lkd*u';
+T78l = revolute(theta_lk,r,u); %T_LK_2_LHP
+R78l = T78l(1:3,1:3); %R_LK_2_LHP
+omega_78l = theta_lkd*u'; %omega_LK_2_LHP
+
 
 %%%% right side %%%
 r = [0 -w 0];
 u = [0 0 -1];
-T45r = revolute(psi_rh,r,u);
-R45r = T45r(1:3,1:3);
-omega_45r = psi_rhd*u';
+T45r = revolute(psi_rh,r,u); %T_RHY_2_UY
+R45r = T45r(1:3,1:3); %R_RHY_2_UY
+omega_45r = psi_rhd*u'; %omega_RHY_2_UY
+
 r = [0 -w 0];
 u = [-1 0 0];
-T56r = revolute(phi_rh,r,u);
-R56r = T56r(1:3,1:3);
-omega_56r = phi_rhd*u';
+T56r = revolute(phi_rh,r,u); %T_RHR_2_RHY
+R56r = T56r(1:3,1:3); %R_RHR_2_RHY
+omega_56r = phi_rhd*u'; %omega_RHR_2_RHY
+
 r = [0 -w 0];
 u = [0 -1 0];
-T67r = revolute(theta_rh,r,u);
-R67r = T67r(1:3,1:3);
-omega_67r = theta_rhd*u';
+T67r = revolute(theta_rh,r,u); %T_RHP_2_RHR
+R67r = T67r(1:3,1:3); %R_RHP_2_RHR
+omega_67r = theta_rhd*u'; %omega_RHP_2_RHR
+
 r = [0 -w -l1];
 u = [0 -1 0];
-T78r = revolute(theta_rk,r,u);
-R78r = T78r(1:3,1:3);
-omega_78r = theta_rkd*u';
+T78r = revolute(theta_rk,r,u); %T_RK_2_RHP
+R78r = T78r(1:3,1:3); %R_RK_2_RHP
+omega_78r = theta_rkd*u'; %omega_RK_2_RHP
 
 %%%%%% position vectors %%%%%%
 %%%%% all joints %%%%
@@ -138,12 +148,23 @@ disp(' ');
 disp(['gstop = ',char(simplify(LA(3)-RA(3))),';']);
 disp(' ');
 
+
+
+
+
+
+
+
+
+
+
+
 ===========================================================================
 omega_13 = omega_12 + R12*omega_23;
 R13 = R12*R23;
 omega_14 = omega_13 + R13*omega_34;
-
 R14 = R13*R34;
+
 omega_15l = omega_14 + R14*omega_45l;
 omega_15r = omega_14 + R14*omega_45r;
 
@@ -161,6 +182,7 @@ R17r = R16r*R67r;
 omega_18r = omega_17r + R17r*omega_78r;
 R18l = R17l*R78l;
 R18r = R17r*R78r;
+
 %%% angular velocity in body frame
 omegaB_2 = omega_12;
 omegaB_3 = omega_23 + R23'*omegaB_2;

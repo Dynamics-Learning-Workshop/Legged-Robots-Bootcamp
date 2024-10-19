@@ -6,22 +6,26 @@ from sympy.utilities.autowrap import autowrap
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), './libs')))
+
 from cython_acc_func import cython_acc_func as cy
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
 from dynamics_bootcamp import Walker3DModelling as model
 
-def gen_func_file(expr_name, expr, var):
+def gen_func_file(expr_name, expr, var, datatype):
     file_name = 'get_'+expr_name + '.py'
     func_name = 'get_'+expr_name
     print(func_name)
+    folder_des = os.path.abspath(os.path.join(os.path.dirname(__file__), './funcs'))
     
     model().gen_func(
         file_name=file_name,
         func_name=func_name,
         arguments=(*var,),
         expression=expr,
-        return_object='get_p_Hip_R_init'
+        return_object=expr_name,
+        folder_name=folder_des,
+        datatype=datatype
     )
     
     return
@@ -29,7 +33,6 @@ def gen_func_file(expr_name, expr, var):
 def main():
     t_now = time.time()
     
-    # SYMBOLS
     x, y, z = sp.symbols('x y z', real=True)
     roll, pitch, yaw = sp.symbols('roll pitch yaw',real=True)
     roll_lh, pitch_lh, yaw_lh = sp.symbols('roll_lh pitch_lh yaw_lh',real=True)
@@ -43,19 +46,6 @@ def main():
     droll_lh, dpitch_lh, dyaw_lh = sp.symbols('droll_lh dpitch_lh dyaw_lh',real=True)
     droll_rh, dpitch_rh, dyaw_rh = sp.symbols('droll_rh dpitch_rh dyaw_rh',real=True)
     dpitch_lk, dpitch_rk = sp.symbols('dpitch_lk dpitch_rk',real=True)
-
-    ddx, ddy, ddz = sp.symbols('ddx ddy ddz', real=True)
-    ddroll, ddpitch, ddyaw = sp.symbols('ddroll ddpitch ddyaw',real=True)
-    ddroll_lh, ddpitch_lh, ddyaw_lh = sp.symbols('ddroll_lh ddpitch_lh ddyaw_lh',real=True)
-    ddroll_rh, ddpitch_rh, ddyaw_rh = sp.symbols('ddroll_rh ddpitch_rh ddyaw_rh',real=True)
-    ddpitch_lk, ddpitch_rk = sp.symbols('ddpitch_lk ddpitch_rk',real=True)
-    
-    g = sp.symbols('g', real=True)
-    P = sp.symbols('P', real=True)
-    Ibx, Iby, Ibz = sp.symbols('Ibx, Iby, Ibz', real=True)
-    Itx, Ity, Itz = sp.symbols('Itx, Ity, Itz', real=True)
-    Icx, Icy, Icz = sp.symbols('Icx, Icy, Icz', real=True)
-    mb, mt, mc = sp.symbols('mb, mt, mc', real=True) 
 
     u = sp.symbols('u0 u1 u2', real=True)
     r = sp.symbols('r0 r1 r2', real=True)
@@ -76,24 +66,31 @@ def main():
         # roll
     r = sp.Matrix([0,0,0])
     u = sp.Matrix([1,0,0])
-    T_UR_2_O = cy().T_ZRM_F(u,r,roll) # from upperbody {U} (roll) to ZRM {O}
-    R_UR_2_O = T_UR_2_O[0:2][0:2] # from upperbody {U} (roll) to ZRM {O}
+    T_UR_2_O = cy().T_ZRM_F(u,r,roll) 
+    # from upperbody {U} (roll) to ZRM {O}
+    R_UR_2_O = T_UR_2_O[0:3,0:3] 
+    # exit()
+    # from upperbody {U} (roll) to ZRM {O}
+    omega_UR_2_O = droll * u
 
         # pitch
     r = sp.Matrix([0,0,0])
     u = sp.Matrix([0,1,0])
     T_UP_2_UR = cy().T_ZRM_F(u,r,pitch) 
     # from upperbody {U} (pitch) to from upperbody {U} (roll)
-    R_UP_2_UR = T_UP_2_UR[0:2,0:2] 
+    R_UP_2_UR = T_UP_2_UR[0:3,0:3] 
+    
     # from upperbody {U} (pitch) to from upperbody {U} (roll)
+    omega_UP_2_UR = dpitch * u 
 
         # yaw
     r = sp.Matrix([0,0,0])
     u = sp.Matrix([0,0,1])
     T_UY_2_UP = cy().T_ZRM_F(u,r,yaw) 
     # from upperbody {U} (yaw) to upperbody {U} (pitch)
-    R_UY_2_UP = T_UY_2_UP[0:2,0:2] 
+    R_UY_2_UP = T_UY_2_UP[0:3,0:3] 
     # from upperbody {U} (yaw) to upperbody {U} (pitch)
+    omega_UY_2_UP = dyaw * u # omega_12
 
     # left-side
     # yaw -> roll -> pitch
@@ -102,31 +99,36 @@ def main():
     u = sp.Matrix([0,0,1])
     T_LHY_2_UY = cy().T_ZRM_F(u,r,yaw_lh) 
     # from left-hip {LH} (yaw) to upperbody {U} (yaw)
-    R_LHY_2_UY = T_LHY_2_UY[0:2,0:2] 
+    R_LHY_2_UY = T_LHY_2_UY[0:3,0:3] 
     # from left-hip {LH} (yaw) to upperbody {U} (yaw)
+    omega_LHY_2_UY = dyaw_lh * u
 
         # roll
     r = sp.Matrix([0,w,0])
     u = sp.Matrix([1,0,0])
     T_LHR_2_LHY = cy().T_ZRM_F(u,r,roll_lh) 
     # from left-hip {LH} (roll) to left-hip {LH} (yaw)
-    R_LHR_2_LHY = T_LHR_2_LHY[0:2,0:2]
+    R_LHR_2_LHY = T_LHR_2_LHY[0:3,0:3]
     # from left-hip {LH} (roll) to left-hip {LH} (yaw)
+    omega_LHR_2_LHY = droll_lh * u
 
         # pitch
     r = sp.Matrix([0,w,0])
     u = sp.Matrix([0,-1,0])
     T_LHP_2_LHR = cy().T_ZRM_F(u,r,pitch_lh) 
     # from left-hip {LH} (pitch) to left-hip {LH} (roll)
-    R_LHP_2_LHR = T_LHP_2_LHR[0:2,0:2]
+    R_LHP_2_LHR = T_LHP_2_LHR[0:3,0:3]
     # from left-hip {LH} (pitch) to left-hip {LH} (roll)
+    omega_LHP_2_LHR = dpitch_lh * u
 
         # knee
     r = sp.Matrix([0,w,-l1])
     u = sp.Matrix([0,-1,0])
     T_LK_2_LHP = cy().T_ZRM_F(u,r,pitch_lk) 
+    R_LK_2_LHP = T_LK_2_LHP[0:3,0:3]
     # from left-knee {LK} to left-hip {LH} (pitch)
-        
+    omega_LK_2_LHP = dpitch_lk * u
+    
 
     # right-side
     # yaw -> roll -> pitch
@@ -136,31 +138,37 @@ def main():
     u = sp.Matrix([0,0,-1])
     T_RHY_2_UY = cy().T_ZRM_F(u,r,yaw_rh) 
     # from right-hip {RH} (yaw) to upperbody {U} (yaw)
-    R_RHY_2_UY = T_RHY_2_UY[0:2,0:2] 
+    R_RHY_2_UY = T_RHY_2_UY[0:3,0:3] 
     # from right-hip {RH} (yaw) to upperbody {U} (yaw)
+    omega_RHY_2_UY = dyaw_rh * u
 
         # roll
     r = sp.Matrix([0,-w,0])
     u = sp.Matrix([-1,0,0])
     T_RHR_2_RHY = cy().T_ZRM_F(u,r,roll_rh) 
     # from right-hip {RH} (roll) to right-hip {RH} (yaw)
-    R_RHR_2_RHY = T_RHR_2_RHY[0:2,0:2]
+    R_RHR_2_RHY = T_RHR_2_RHY[0:3,0:3]
     # from right-hip {RH} (roll) to right-hip {RH} (yaw)
+    omega_RHR_2_RHY = droll_rh * u
 
         # pitch
     r = sp.Matrix([0,-w,0])
     u = sp.Matrix([0,-1,0])
     T_RHP_2_RHR = cy().T_ZRM_F(u,r,pitch_rh) 
     # from right-hip {RH} (pitch) to right-hip {RH} (roll)
-    R_RHP_2_RHR = T_RHP_2_RHR[0:2,0:2]
+    R_RHP_2_RHR = T_RHP_2_RHR[0:3,0:3]
     # from right-hip {RH} (pitch) to right-hip {RH} (roll)
+    omega_RHP_2_RHR = pitch_rh * u
 
         # knee
     r = sp.Matrix([0,-w,-l1])
     u = sp.Matrix([0,-1,0])
     T_RK_2_RHP = cy().T_ZRM_F(u,r,pitch_rk) 
+    R_RK_2_RHP = T_RK_2_RHP[0:3,0:3] 
     # from right-knee {RK} to right-hip {RH} (pitch)
-
+    omega_RK_2_RHP = pitch_rk * u
+    
+    ##################################
 
     # POSITION VECTORS
     p_B = hip_mid # position of base
@@ -180,20 +188,20 @@ def main():
     # from left-knee (pitch) {LK} (yaw) to {I}
     p_LK = T_LK_2_I @ sp.Matrix([0,w,-l1,1])
     # position of left knee (topology after joint knee)
-    p_LA = T_LK_2_I @ sp.Matrix([0,w,-l1,1])
+    p_LA = T_LK_2_I @ sp.Matrix([0,w,-(l1+l2),1])
     # position of left ankle
 
     # right
     T_RHP_2_I = T_UY_2_I @ T_RHY_2_UY @ T_RHR_2_RHY @ T_RHP_2_RHR 
     # from right-hip (pitch) {RH} (yaw) to {I}
-    p_RH = T_RHP_2_I @ sp.Matrix([0,w,0,1]) 
+    p_RH = T_RHP_2_I @ sp.Matrix([0,-w,0,1]) 
     # position of right hip
 
     T_RK_2_I = T_RHP_2_I @ T_RK_2_RHP
     # from right-knee (pitch) {RK} (yaw) to {I}
-    p_RK = T_RK_2_I @ sp.Matrix([0,w,-l1,1])
+    p_RK = T_RK_2_I @ sp.Matrix([0,-w,-l1,1])
     # position of right knee (topology after joint knee)
-    p_RA = T_RK_2_I @ sp.Matrix([0,w,-l1,1])
+    p_RA = T_RK_2_I @ sp.Matrix([0,-w,-(l1+l2),1])
     # position of right ankle
 
     # center of masses
@@ -201,8 +209,8 @@ def main():
     # COM of torso
     p_Thigh_L = T_LHP_2_I @ sp.Matrix([0,w,-l1/2,1]) 
     p_Calf_L = T_LK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
-    p_Thigh_R = T_RHP_2_I @ sp.Matrix([0,w,-l1/2,1])
-    p_Calf_R = T_RK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
+    p_Thigh_R = T_RHP_2_I @ sp.Matrix([0,-w,-l1/2,1])
+    p_Calf_R = T_RK_2_I @ sp.Matrix([0,-w,-(l1+l2/2),1]) 
 
 
     var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk, w, l0, l1, l2]
@@ -211,7 +219,77 @@ def main():
     p_Hip_R_init = -p_RA # with x = 0, y = 0, z = 0
     # hip_mid + p_LA = ankle position
     # when start, ankle position is on ground, and set this as the starting point and infer the rest
-        
+    
+    # DYNAMICS STARTS HERE (drop annotation->too much)
+    omega_13 = omega_UR_2_O + R_UR_2_O@omega_UP_2_UR
+    R13 = R_UR_2_O@R_UP_2_UR
+    omega_14 = omega_13 + R13@omega_UY_2_UP
+    R14 = R13@R_UY_2_UP
+    
+    omega_15l = omega_14 + R14@omega_LHY_2_UY
+    omega_15r = omega_14 + R14@omega_RHY_2_UY
+    
+    R15l = R14@R_LHY_2_UY
+    omega_16l = omega_15l + R15l@omega_LHR_2_LHY
+    R15r = R14@R_RHY_2_UY
+    omega_16r = omega_15r + R15r@omega_RHR_2_RHY
+    R16l = R15l@R_LHR_2_LHY
+    omega_17l = omega_16l + R16l@omega_LHP_2_LHR
+    R16r = R15r@R_RHR_2_RHY
+    omega_17r = omega_16r + R16r@omega_RHP_2_RHR
+    R17l = R16l@R_LHP_2_LHR
+    omega_18l = omega_17l + R17l@omega_LK_2_LHP;
+    R17r = R16r@R_RHP_2_RHR
+    omega_18r = omega_17r + R17r@omega_RK_2_RHP;
+    
+    R18l = R17l@R_LK_2_LHP
+    R18r = R17r@R_RK_2_RHP
+    
+    omegaB_2 = omega_UR_2_O
+    omegaB_3 = omega_UP_2_UR + R_UP_2_UR@omegaB_2
+    omegaB_4 = omega_UY_2_UP + R_UY_2_UP@omegaB_3;
+    
+    omegaB_5l = omega_LHY_2_UY + R_LHY_2_UY@omegaB_4;
+    omegaB_6l = omega_LHR_2_LHY + R_LHR_2_LHY@omegaB_5l;
+    omegaB_7l = omega_LHP_2_LHR + R_LHP_2_LHR@omegaB_6l;
+    omegaB_8l = omega_LK_2_LHP + R_LK_2_LHP@omegaB_7l;
+    omegaB_5r = omega_RHY_2_UY + R_RHY_2_UY@omegaB_4;
+    omegaB_6r = omega_RHR_2_RHY + R_RHR_2_RHY@omegaB_5r;
+    omegaB_7r = omega_RHP_2_RHR + R_RHP_2_RHR@omegaB_6r;
+    omegaB_8r = omega_RK_2_RHP + R_RK_2_RHP@omegaB_7r;
+    
+    
+    # foot impulse
+    P = sp.symbols('P', real=True)
+    I_LA = sp.zeros(3,3)
+    I_RA = sp.zeros(3,3)
+    
+    I_LA[0] = P*(p_LK[0]-p_LA[0])/l2;
+    I_LA[1] = P*(p_LK[1]-p_LA[1])/l2;
+    I_LA[2] = P*(p_LK[2]-p_LA[2])/l2;
+    I_RA[0] = P*(p_RK[0]-p_RA[0])/l2;
+    I_RA[1] = P*(p_RK[1]-p_RA[1])/l2;
+    I_RA[2] = P*(p_RK[2]-p_RA[2])/l2;
+
+    ddx, ddy, ddz = sp.symbols('ddx ddy ddz', real=True)
+    ddroll, ddpitch, ddyaw = sp.symbols('ddroll ddpitch ddyaw',real=True)
+    ddroll_lh, ddpitch_lh, ddyaw_lh = sp.symbols('ddroll_lh ddpitch_lh ddyaw_lh',real=True)
+    ddroll_rh, ddpitch_rh, ddyaw_rh = sp.symbols('ddroll_rh ddpitch_rh ddyaw_rh',real=True)
+    ddpitch_lk, ddpitch_rk = sp.symbols('ddpitch_lk ddpitch_rk',real=True)
+    
+    g = sp.symbols('g', real=True)
+    Ibx, Iby, Ibz = sp.symbols('Ibx, Iby, Ibz', real=True)
+    Itx, Ity, Itz = sp.symbols('Itx, Ity, Itz', real=True)
+    Icx, Icy, Icz = sp.symbols('Icx, Icy, Icz', real=True)
+    mb, mt, mc = sp.symbols('mb, mt, mc', real=True) 
+    
+    q = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk,];
+    qdot = [dx, dy, dz, droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk]
+    qddot = [ddx, ddy, ddz, ddroll, ddpitch, ddyaw, ddroll_lh, ddpitch_lh, ddyaw_lh, ddroll_rh, ddpitch_rh, ddyaw_rh, ddpitch_rk]
+    
+    
+    # FUNCTIONS FILES
+    # gen_func_file(expr_name='p_B', expr=p_B, var=var, datatype='posi')
     
     
     t_end = time.time()
