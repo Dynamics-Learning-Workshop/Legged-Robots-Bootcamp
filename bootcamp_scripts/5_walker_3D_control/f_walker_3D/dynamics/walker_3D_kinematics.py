@@ -6,22 +6,26 @@ from sympy.utilities.autowrap import autowrap
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), './libs')))
+
 from cython_acc_func import cython_acc_func as cy
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
-from dynamics_bootcamp import Modelling as model
+from dynamics_bootcamp import Walker3DModelling as model
 
-def gen_func_file(expr_name, expr, var):
+def gen_func_file(expr_name, expr, var, datatype):
     file_name = 'get_'+expr_name + '.py'
     func_name = 'get_'+expr_name
     print(func_name)
+    folder_des = os.path.abspath(os.path.join(os.path.dirname(__file__), './funcs'))
     
     model().gen_func(
         file_name=file_name,
         func_name=func_name,
         arguments=(*var,),
         expression=expr,
-        return_object='get_p_Hip_R_init'
+        return_object=expr_name,
+        folder_name=folder_des,
+        datatype=datatype
     )
     
     return
@@ -161,20 +165,20 @@ def main():
     # from left-knee (pitch) {LK} (yaw) to {I}
     p_LK = T_LK_2_I @ sp.Matrix([0,w,-l1,1])
     # position of left knee (topology after joint knee)
-    p_LA = T_LK_2_I @ sp.Matrix([0,w,-l1,1])
+    p_LA = T_LK_2_I @ sp.Matrix([0,w,-(l1+l2),1])
     # position of left ankle
 
     # right
     T_RHP_2_I = T_UY_2_I @ T_RHY_2_UY @ T_RHR_2_RHY @ T_RHP_2_RHR 
     # from right-hip (pitch) {RH} (yaw) to {I}
-    p_RH = T_RHP_2_I @ sp.Matrix([0,w,0,1]) 
+    p_RH = T_RHP_2_I @ sp.Matrix([0,-w,0,1]) 
     # position of right hip
 
     T_RK_2_I = T_RHP_2_I @ T_RK_2_RHP
     # from right-knee (pitch) {RK} (yaw) to {I}
-    p_RK = T_RK_2_I @ sp.Matrix([0,w,-l1,1])
+    p_RK = T_RK_2_I @ sp.Matrix([0,-w,-l1,1])
     # position of right knee (topology after joint knee)
-    p_RA = T_RK_2_I @ sp.Matrix([0,w,-l1,1])
+    p_RA = T_RK_2_I @ sp.Matrix([0,-w,-(l1+l2),1])
     # position of right ankle
 
     # center of masses
@@ -182,8 +186,8 @@ def main():
     # COM of torso
     p_Thigh_L = T_LHP_2_I @ sp.Matrix([0,w,-l1/2,1]) 
     p_Calf_L = T_LK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
-    p_Thigh_R = T_RHP_2_I @ sp.Matrix([0,w,-l1/2,1])
-    p_Calf_R = T_RK_2_I @ sp.Matrix([0,w,-(l1+l2/2),1]) 
+    p_Thigh_R = T_RHP_2_I @ sp.Matrix([0,-w,-l1/2,1])
+    p_Calf_R = T_RK_2_I @ sp.Matrix([0,-w,-(l1+l2/2),1]) 
 
 
     var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk, w, l0, l1, l2]
@@ -194,27 +198,30 @@ def main():
     # when start, ankle position is on ground, and set this as the starting point and infer the rest
     
     # FUNCTIONS FILES
-    gen_func_file(expr_name='p_B', expr=p_B, var=var)
-    gen_func_file(expr_name='p_H', expr=p_H, var=var)
+    gen_func_file(expr_name='p_B', expr=p_B, var=var, datatype='posi')
+    gen_func_file(expr_name='p_H', expr=p_H, var=var, datatype='posi')
     
-    gen_func_file(expr_name='p_LH', expr=p_LH, var=var)
-    gen_func_file(expr_name='p_RH', expr=p_RH, var=var)
+    gen_func_file(expr_name='p_LH', expr=p_LH, var=var, datatype='posi')
+    gen_func_file(expr_name='p_RH', expr=p_RH, var=var, datatype='posi')
     
-    gen_func_file(expr_name='p_LK', expr=p_LK, var=var)
-    gen_func_file(expr_name='p_RK', expr=p_RK, var=var)
+    gen_func_file(expr_name='p_LK', expr=p_LK, var=var, datatype='posi')
+    gen_func_file(expr_name='p_RK', expr=p_RK, var=var, datatype='posi')
     
-    gen_func_file(expr_name='p_Torso', expr=p_Torso, var=var)
-    gen_func_file(expr_name='p_Thigh_L', expr=p_Thigh_L, var=var)
-    gen_func_file(expr_name='p_Thigh_R', expr=p_Thigh_R, var=var)
-    gen_func_file(expr_name='p_Calf_L', expr=p_Calf_L, var=var)
-    gen_func_file(expr_name='p_Calf_R', expr=p_Calf_R, var=var)
+    gen_func_file(expr_name='p_LA', expr=p_LA, var=var, datatype='posi')
+    gen_func_file(expr_name='p_RA', expr=p_RA, var=var, datatype='posi')
     
-    gen_func_file(expr_name='p_Hip_L_init', expr=p_Hip_L_init, var=var)
-    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var)
+    gen_func_file(expr_name='p_Torso', expr=p_Torso, var=var, datatype='posi')
+    gen_func_file(expr_name='p_Thigh_L', expr=p_Thigh_L, var=var, datatype='posi')
+    gen_func_file(expr_name='p_Thigh_R', expr=p_Thigh_R, var=var, datatype='posi')
+    gen_func_file(expr_name='p_Calf_L', expr=p_Calf_L, var=var, datatype='posi')
+    gen_func_file(expr_name='p_Calf_R', expr=p_Calf_R, var=var, datatype='posi')
     
-    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var)
+    gen_func_file(expr_name='p_Hip_L_init', expr=p_Hip_L_init, var=var, datatype='posi')
+    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var, datatype='posi')
     
-    gen_func_file(expr_name='collision', expr=p_LA[2]-p_RA[2], var=var)
+    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var, datatype='posi')
+    
+    gen_func_file(expr_name='collision', expr=p_LA[2]-p_RA[2], var=var, datatype='value')
         
     t_end = time.time()
     print('END, TIME: ', t_end - t_now)
