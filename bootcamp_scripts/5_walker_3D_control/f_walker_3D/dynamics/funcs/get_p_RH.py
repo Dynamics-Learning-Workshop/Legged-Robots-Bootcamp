@@ -1,8 +1,8 @@
 import numpy as np
 from sympy import *
-# AUTO-GENERATE @ 2024-10-19 16:24:49
+# AUTO-GENERATE @ 2024-10-20 13:50:04
 
-def get_p_RH(x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk, w, l0, l1, l2):
+def get_p_RH(x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2):
 
     p_RH = np.array([-w*(1 - cos(roll_rh))*(-sin(yaw)*cos(pitch)*cos(yaw_rh) + sin(yaw_rh)*cos(pitch)*cos(yaw)) + w*(1 - cos(yaw_rh))*sin(yaw)*cos(pitch) - w*((-sin(yaw)*cos(pitch)*cos(yaw_rh) + sin(yaw_rh)*cos(pitch)*cos(yaw))*cos(roll_rh) - sin(pitch)*sin(roll_rh)) - w*sin(pitch)*sin(roll_rh) + w*sin(yaw_rh)*cos(pitch)*cos(yaw) + x, -w*(1 - cos(roll_rh))*((-sin(pitch)*sin(roll)*sin(yaw) + cos(roll)*cos(yaw))*cos(yaw_rh) + (sin(pitch)*sin(roll)*cos(yaw) + sin(yaw)*cos(roll))*sin(yaw_rh)) - w*(1 - cos(yaw_rh))*(-sin(pitch)*sin(roll)*sin(yaw) + cos(roll)*cos(yaw)) - w*(((-sin(pitch)*sin(roll)*sin(yaw) + cos(roll)*cos(yaw))*cos(yaw_rh) + (sin(pitch)*sin(roll)*cos(yaw) + sin(yaw)*cos(roll))*sin(yaw_rh))*cos(roll_rh) + sin(roll)*sin(roll_rh)*cos(pitch)) + w*(sin(pitch)*sin(roll)*cos(yaw) + sin(yaw)*cos(roll))*sin(yaw_rh) + w*sin(roll)*sin(roll_rh)*cos(pitch) + y, -w*(1 - cos(roll_rh))*((sin(pitch)*sin(yaw)*cos(roll) + sin(roll)*cos(yaw))*cos(yaw_rh) + (-sin(pitch)*cos(roll)*cos(yaw) + sin(roll)*sin(yaw))*sin(yaw_rh)) - w*(1 - cos(yaw_rh))*(sin(pitch)*sin(yaw)*cos(roll) + sin(roll)*cos(yaw)) - w*(((sin(pitch)*sin(yaw)*cos(roll) + sin(roll)*cos(yaw))*cos(yaw_rh) + (-sin(pitch)*cos(roll)*cos(yaw) + sin(roll)*sin(yaw))*sin(yaw_rh))*cos(roll_rh) - sin(roll_rh)*cos(pitch)*cos(roll)) + w*(-sin(pitch)*cos(roll)*cos(yaw) + sin(roll)*sin(yaw))*sin(yaw_rh) - w*sin(roll_rh)*cos(pitch)*cos(roll) + z, ])  
 

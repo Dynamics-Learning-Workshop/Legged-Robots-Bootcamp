@@ -190,7 +190,7 @@ def main():
     p_Calf_R = T_RK_2_I @ sp.Matrix([0,-w,-(l1+l2/2),1]) 
 
 
-    var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk, w, l0, l1, l2]
+    var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2]
     # hip_mid @ init
     p_Hip_L_init = -p_LA # with x = 0, y = 0, z = 0
     p_Hip_R_init = -p_RA # with x = 0, y = 0, z = 0

@@ -167,6 +167,7 @@ def main():
     R_RK_2_RHP = T_RK_2_RHP[0:3,0:3] 
     # from right-knee {RK} to right-hip {RH} (pitch)
     omega_RK_2_RHP = pitch_rk * u
+    print("GOT ALL TRANSFORMATIONS")
     
     ##################################
 
@@ -219,7 +220,12 @@ def main():
     # hip_mid + p_LA = ankle position
     # when start, ankle position is on ground, and set this as the starting point and infer the rest
     
+    print("GOT ALL POSITIONS")
+    ##################################
+    
     # DYNAMICS STARTS HERE (drop annotation->too much)
+    
+    # VELOCITIES VECTORS
     omega_13 = omega_UR_2_O + R_UR_2_O@omega_UP_2_UR
     R13 = R_UR_2_O@R_UP_2_UR
     omega_14 = omega_13 + R13@omega_UY_2_UP
@@ -287,23 +293,36 @@ def main():
     qdot = [dx, dy, dz, droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk]
     qddot = [ddx, ddy, ddz, ddroll, ddpitch, ddyaw, ddroll_lh, ddpitch_lh, ddyaw_lh, ddpitch_lk, ddroll_rh, ddpitch_rh, ddyaw_rh, ddpitch_rk]
     
-    v_Hip_L_init = p_Hip_L_init.jacobian(q) @ sp.Matrix(qdot)
-    v_Hip_R_init = p_Hip_R_init.jacobian(q) @ sp.Matrix(qdot)
+    v_Torso = p_Torso.jacobian(q) @ sp.Matrix(qdot)
+    v_Thigh_L = p_Thigh_L.jacobian(q) @ sp.Matrix(qdot)
+    v_Thigh_R = p_Thigh_R.jacobian(q) @ sp.Matrix(qdot)
+    v_Calf_L = p_Calf_L.jacobian(q) @ sp.Matrix(qdot)
+    v_Calf_R = p_Calf_R.jacobian(q) @ sp.Matrix(qdot)
     
-    var = [*q, *qdot, w, l0, l1, l2, ]
+    print("GOT ALL VELOCITIES")
+    ##################################
+    
+    # GET LAGRAGIAN
+    
+    I_torso = sp.diag(Ibx, Iby, Ibz)
+    I_thigh = sp.diag(Itx, Ity, Itz)
+    I_calf = sp.diag(Icx, Icy, Icz)
+    
+    T = 0.5 * (mb * v_Torso.dot(v_Torso) + mt * v_Thigh_L.dot(v_Thigh_L) + mc * v_Calf_L.dot(v_Calf_L) + mt * v_Thigh_R.dot(v_Thigh_R) + mc * v_Calf_R.dot(v_Calf_R)) + 0.5 * (omegaB_4.dot(I_torso @ omegaB_4) + omegaB_7l.dot(I_thigh @ omegaB_7l) + omegaB_8l.dot(I_calf @ omegaB_8l) + omegaB_7r.dot(I_thigh @ omegaB_7r) + omegaB_8r.dot(I_calf @ omegaB_8r))
+    V = mb * g * p_Torso[2] + mt * g * p_Thigh_L[2] + mc * g * p_Calf_L[2] + mt * g * p_Thigh_R[2] + mc * g * p_Calf_R[2]
+    
+    L = T - V
+    
     # FUNCTIONS FILES
+    param = [w, l0, l1, l2, g, mb, mt, mc, Ibx, Iby, Ibz, Itx, Ity, Itz, Icx, Icy, Icz]
+    var = [*q, *qdot, *param ]
     gen_func_file(
-        expr_name='v_Hip_L_init', 
-        expr=v_Hip_L_init, 
+        expr_name='lagragian', 
+        expr=L, 
         var=var, 
-        datatype='velo'
+        datatype='value'
     )
-    gen_func_file(
-        expr_name='v_Hip_R_init', 
-        expr=v_Hip_R_init, 
-        var=var, 
-        datatype='velo'
-    )
+    print("GOT LAGRAGIAN")
     
     t_end = time.time()
     print('END, TIME: ', t_end - t_now)
