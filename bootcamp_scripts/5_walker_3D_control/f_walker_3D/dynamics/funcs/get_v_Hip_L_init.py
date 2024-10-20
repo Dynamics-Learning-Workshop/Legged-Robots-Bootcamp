@@ -1,6 +1,6 @@
 import numpy as np
 from sympy import *
-# AUTO-GENERATE @ 2024-10-20 13:54:40
+# AUTO-GENERATE @ 2024-10-20 19:27:07
 
 def get_v_Hip_L_init(x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, dx, dy, dz, droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk, w, l0, l1, l2):
 

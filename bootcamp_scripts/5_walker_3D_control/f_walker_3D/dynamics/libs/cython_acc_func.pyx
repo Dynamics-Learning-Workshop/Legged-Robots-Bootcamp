@@ -44,3 +44,30 @@ cdef class cython_acc_func:
                             [0, 0, 0, 1]])
         
         return T_ZRM
+
+    cdef get_EOM(self, q_, qdot_, qddot_, L_):
+        cdef list EOM = []
+        
+        cdef int dof = len(q_)
+        cdef int i, j
+        cdef object q, qdot, qddot, L
+        q = q_
+        qdot = qdot_
+        qddot = qddot_
+        L = L_
+
+        for i in range(dof):
+            dLdqdot = sp.diff(L, qdot[i])
+            ddt_dLdqdot = 0  # Initialize to zero
+            
+            # Compute ddt_dLdqdot using a sum
+            for j in range(dof):
+                ddt_dLdqdot += sp.diff(dLdqdot, q[j]) * qdot[j] + sp.diff(dLdqdot, qdot[j]) * qddot[j]
+            
+            dLdq = sp.diff(L, q[i])
+            EOM.append(ddt_dLdqdot - dLdq)
+        
+        return EOM
+
+    def lala(self):
+        print('gan')

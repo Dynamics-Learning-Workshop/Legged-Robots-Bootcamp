@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/bootcamp_scripts/5_walker_3D_control/f_walker_3D/",
+        "${workspaceFolder}/bootcamp_scripts/5_walker_3D_control/f_walker_3D/dynamics/**",
+        "${workspaceFolder}/bootcamp_scripts/5_walker_3D_control/f_walker_3D/dynamics/**"
+    ]
+
+}

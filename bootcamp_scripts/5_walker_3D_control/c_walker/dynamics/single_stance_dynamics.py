@@ -1,5 +1,7 @@
 import sympy as sp
+import time as time 
 
+t_now = time.time()
 # Define symbols
 M, m, I = sp.symbols('M m I', real=True)  # Mass Hip, leg, Inertia
 c, l = sp.symbols('c l', real=True)  # Distances
@@ -117,3 +119,5 @@ print()
 print("b_0 = ", b_ss_reduced[0])
 print("b_1 = ", b_ss_reduced[1])
 print("=====================")
+t_end = time.time()
+print('END, TIME: ', t_end - t_now)
