@@ -149,16 +149,6 @@ disp(['gstop = ',char(simplify(LA(3)-RA(3))),';']);
 disp(' ');
 
 
-
-
-
-
-
-
-
-
-
-
 ===========================================================================
 omega_13 = omega_12 + R12*omega_23;
 R13 = R12*R23;
@@ -321,6 +311,21 @@ end
 % f_footjacobdotR = matlabFunction(Jdot_r,...
 %    'File','foot_Jdot_r','Outputs',{'Jdot_r'});
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% TMR START HERE!!!!!!!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Generating rhs file');

@@ -318,10 +318,60 @@ def main():
     folder_des = os.path.abspath(os.path.join(os.path.dirname(__file__), './compiled_funcs'))
 
     # Loading the saved equations
-    with open(folder_des + "/EOM_equations.pkl", "rb") as file:
-        EOM_vec = pickle.load(file)
-    print(EOM_vec.shape)
-    print("Equations loaded successfully.")
+    # with open(folder_des + "/EOM_equations.pkl", "rb") as file:
+    #     EOM_vec = pickle.load(file)
+    # print(EOM_vec.shape)
+    # print("Equations loaded successfully.")
+    
+    
+    J_l_ss = sp.Matrix(p_LA[0:3]).jacobian(q)
+    J_r_ss = sp.Matrix(p_RA[0:3]).jacobian(q)
+    
+    Jdot_l_ss = np.zeros([J_l_ss.shape[0], J_l_ss.shape[1]])
+    Jdot_l_ss = sp.Matrix(Jdot_l_ss)
+    
+    Jdot_r_ss = np.zeros([J_r_ss.shape[0], J_r_ss.shape[1]])
+    Jdot_r_ss = sp.Matrix(Jdot_r_ss)
+
+    sp.Matrix([J_l_ss[0,4]]).jacobian(q)
+    
+    for i in range(Jdot_l_ss.shape[0]):
+        for j in range(Jdot_l_ss.shape[1]):
+            Jdot_l_ss[i, j] = sp.Matrix([J_l_ss[i,j]]).jacobian(q) @ sp.Matrix(qdot)
+            Jdot_r_ss[i, j] = sp.Matrix([J_r_ss[i,j]]).jacobian(q) @ sp.Matrix(qdot)
+            
+            # Jdot_l_ss[i, j] = 0
+            # for k in range(dof):
+                # Jdot_l_ss[i,j] += sp.diff(J_l_ss[i, j], q[k]) * qdot[k]
+    
+    var = [*q, w, l0, l1, l2]
+    gen_func_file(
+        expr_name='J_l_ss',
+        expr=J_l_ss,
+        var=var,
+        datatype='mat'
+    )
+    gen_func_file(
+        expr_name='J_r_ss',
+        expr=J_r_ss,
+        var=var,
+        datatype='mat'
+    )
+    
+    var = [*q, *qdot, w, l0, l1, l2]
+    gen_func_file(
+        expr_name='Jdot_l_ss',
+        expr=Jdot_l_ss,
+        var=var,
+        datatype='mat'
+    )
+    gen_func_file(
+        expr_name='Jdot_r_ss',
+        expr=Jdot_r_ss,
+        var=var,
+        datatype='mat'
+    )
+    
     
     t_end = time.time()
     print('END, TIME: ', t_end - t_now)
