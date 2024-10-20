@@ -337,7 +337,7 @@ def main():
     
     # FUNCTIONS FILES
     param = [w, l0, l1, l2, g, mb, mt, mc, Ibx, Iby, Ibz, Itx, Ity, Itz, Icx, Icy, Icz]
-    var = [*q, *qdot, *param ]
+    var = [*q, *qdot, *qddot, *param]
     gen_func_file(
         expr_name='Mass_matrix',
         expr=mass_mat,

@@ -17,10 +17,12 @@ from Mass_matrix.wrapper_module_0 import autofunc_c as get_Mass_matrix_cy
 
 
 t_now = time.time()
-temp_var = np.zeros(56)
-get_B_matrix_cy(*temp_var)
-temp_var = np.zeros(27)
-get_Mass_matrix_cy(*temp_var)
+
+for i in range(10):
+    temp_var = np.random.rand(56)
+    get_B_matrix_cy(*temp_var)
+    temp_var = np.random.rand(27)
+    get_Mass_matrix_cy(*temp_var)
 t_cy = time.time() - t_now
 
 
@@ -68,7 +70,15 @@ dx,dy,dz,droll,dpitch,dyaw, droll_lh,dpitch_lh,dyaw_lh,dpitch_lk, droll_rh,dpitc
 ddx,ddy,ddz,ddroll,ddpitch,ddyaw, ddroll_lh,ddpitch_lh,ddyaw_lh,ddpitch_lk, ddroll_rh,ddpitch_rh,ddyaw_rh,ddpitch_rk = qddot
 
 t_now = time.time()
-get_B_ss_matrix(*q, *qdot, *qddot, *param, *param_more)
+for i in range(10):
+    print(i)
+    q = np.random.rand(len(q))
+    qdot = np.random.rand(len(qdot))
+    qddot = np.random.rand(len(qddot))
+    param = np.random.rand(len(param))
+    param_more = np.random.rand(len(param_more))
+    get_B_ss_matrix(*q, *qdot, *qddot, *param, *param_more)
+    get_Mass_matrix(*q, *qdot, *qddot, *param, *param_more)
 t_py = time.time() - t_now
 
 
