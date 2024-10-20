@@ -10,7 +10,7 @@ import sympy as sp
 import shutil
 
 
-func_name = 'B_matrix'
+func_name = 'Mass_matrix'
 
 x, y, z = sp.symbols('x y z', real=True)
 roll, pitch, yaw = sp.symbols('roll pitch yaw',real=True)
