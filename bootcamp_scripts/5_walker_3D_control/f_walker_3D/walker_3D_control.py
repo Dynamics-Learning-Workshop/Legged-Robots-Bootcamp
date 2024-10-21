@@ -276,7 +276,6 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
     Kd = 2 * np.sqrt(Kp)
     AAinv = np.linalg.inv(AA)
     
-    
     s = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, pitch_rk]
     v = [droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, dpitch_rk]
     q_ddot_c = a_ref + Kd*(v_ref-v) + Kp*(s_ref-s);
@@ -360,8 +359,3 @@ gen_control_partitioning(
 )
     
 print("END")
-
-
-
-
-
