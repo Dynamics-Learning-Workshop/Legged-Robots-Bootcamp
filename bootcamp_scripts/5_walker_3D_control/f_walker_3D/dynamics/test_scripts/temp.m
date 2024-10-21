@@ -326,6 +326,10 @@ end
 
 
 % TMR START HERE!!!!!!!
+% TMR START HERE!!!!!!!
+% TMR START HERE!!!!!!!
+% TMR START HERE!!!!!!!
+% TMR START HERE!!!!!!!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Generating rhs file');
@@ -394,6 +398,9 @@ fprintf(fid, 'phi_rhdd = alpha(11); theta_rhdd = alpha(12); psi_rhdd = alpha(13)
 fprintf(fid, 'zdot=[xd xdd yd ydd zd zdd phid phidd thetad thetadd psid psidd phi_lhd phi_lhdd theta_lhd theta_lhdd psi_lhd ...  \n');
 fprintf(fid, 'psi_lhdd theta_lkd theta_lkdd phi_rhd phi_rhdd theta_rhd theta_rhdd psi_rhd psi_rhdd theta_rkd theta_rkdd]'';  \n\n');
 fclose(fid);
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 disp('Generating file to generate A and b matrices');
 fid=fopen( 'get_eom.c','w');

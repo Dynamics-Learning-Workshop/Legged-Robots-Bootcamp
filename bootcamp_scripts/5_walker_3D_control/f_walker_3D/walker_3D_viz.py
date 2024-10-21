@@ -109,7 +109,8 @@ def save_data(q):
     
     return
 save_data(q)
-# exit()
+
+exit()
 
 sim3D().anime(
     t=t_all,
