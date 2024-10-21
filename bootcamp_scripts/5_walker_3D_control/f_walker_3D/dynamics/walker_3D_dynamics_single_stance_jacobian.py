@@ -343,6 +343,18 @@ def main():
             # Jdot_l_ss[i, j] = 0
             # for k in range(dof):
                 # Jdot_l_ss[i,j] += sp.diff(J_l_ss[i, j], q[k]) * qdot[k]
+                
+    
+    folder_des = os.path.abspath(os.path.join(os.path.dirname(__file__), './compiled_funcs'))
+    with open(folder_des + "/J_l_ss.pkl", "wb") as file:
+        pickle.dump(J_l_ss, file)
+    with open(folder_des + "/J_r_ss.pkl", "wb") as file:
+        pickle.dump(J_r_ss, file)
+        
+    with open(folder_des + "/Jdot_l_ss.pkl", "wb") as file:
+        pickle.dump(Jdot_l_ss, file)
+    with open(folder_des + "/Jdot_r_ss.pkl", "wb") as file:
+        pickle.dump(Jdot_r_ss, file)
     
     var = [*q, w, l0, l1, l2]
     gen_func_file(

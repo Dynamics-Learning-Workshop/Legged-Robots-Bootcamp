@@ -1,6 +1,6 @@
 import numpy as np
 from sympy import *
-# AUTO-GENERATE @ 2024-10-20 22:37:41
+# AUTO-GENERATE @ 2024-10-21 13:24:18
 
 def get_Jdot_r_ss(x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, dx, dy, dz, droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk, w, l0, l1, l2):
 

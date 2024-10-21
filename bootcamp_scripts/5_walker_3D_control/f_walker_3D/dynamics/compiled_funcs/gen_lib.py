@@ -10,7 +10,7 @@ import sympy as sp
 import shutil
 
 
-func_name = 'Mass_matrix'
+func_name = 'Jdot_r_ss'
 
 x, y, z = sp.symbols('x y z', real=True)
 roll, pitch, yaw = sp.symbols('roll pitch yaw',real=True)

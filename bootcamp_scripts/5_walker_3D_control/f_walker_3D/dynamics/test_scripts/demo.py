@@ -14,6 +14,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../comp
 
 from B_matrix.wrapper_module_0 import autofunc_c as get_B_matrix_cy
 from Mass_matrix.wrapper_module_0 import autofunc_c as get_Mass_matrix_cy
+from J_l_ss.wrapper_module_0 import autofunc_c as get_J_l_ss_cy
+from J_r_ss.wrapper_module_0 import autofunc_c as get_J_r_ss_cy
+from Jdot_l_ss.wrapper_module_0 import autofunc_c as get_Jdot_l_ss_cy
+from Jdot_r_ss.wrapper_module_0 import autofunc_c as get_Jdot_r_ss_cy
 
 
 t_now = time.time()
@@ -23,6 +27,13 @@ for i in range(10):
     get_B_matrix_cy(*temp_var)
     temp_var = np.random.rand(27)
     get_Mass_matrix_cy(*temp_var)
+    
+    temp_var = np.random.rand(10)
+    get_J_l_ss_cy(*temp_var)
+    get_J_r_ss_cy(*temp_var)
+    temp_var = np.random.rand(17)
+    get_Jdot_l_ss_cy(*temp_var)
+    get_Jdot_r_ss_cy(*temp_var)
 t_cy = time.time() - t_now
 
 
@@ -79,6 +90,10 @@ for i in range(10):
     param_more = np.random.rand(len(param_more))
     get_B_ss_matrix(*q, *qdot, *qddot, *param, *param_more)
     get_Mass_matrix(*q, *qdot, *qddot, *param, *param_more)
+    get_J_l_ss(*q, *param)
+    get_J_r_ss(*q, *param)
+    get_Jdot_l_ss(*q, *qdot, *param)
+    get_Jdot_r_ss(*q, *qdot, *param)
 t_py = time.time() - t_now
 
 

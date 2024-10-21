@@ -1,6 +1,6 @@
 import numpy as np
 from sympy import *
-# AUTO-GENERATE @ 2024-10-20 22:37:40
+# AUTO-GENERATE @ 2024-10-21 13:24:17
 
 def get_J_r_ss(x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2):
 
