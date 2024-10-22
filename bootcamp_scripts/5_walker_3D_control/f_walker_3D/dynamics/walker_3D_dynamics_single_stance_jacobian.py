@@ -332,17 +332,11 @@ def main():
     
     Jdot_r_ss = np.zeros([J_r_ss.shape[0], J_r_ss.shape[1]])
     Jdot_r_ss = sp.Matrix(Jdot_r_ss)
-
-    sp.Matrix([J_l_ss[0,4]]).jacobian(q)
     
     for i in range(Jdot_l_ss.shape[0]):
         for j in range(Jdot_l_ss.shape[1]):
             Jdot_l_ss[i, j] = sp.Matrix([J_l_ss[i,j]]).jacobian(q) @ sp.Matrix(qdot)
             Jdot_r_ss[i, j] = sp.Matrix([J_r_ss[i,j]]).jacobian(q) @ sp.Matrix(qdot)
-            
-            # Jdot_l_ss[i, j] = 0
-            # for k in range(dof):
-                # Jdot_l_ss[i,j] += sp.diff(J_l_ss[i, j], q[k]) * qdot[k]
                 
     
     folder_des = os.path.abspath(os.path.join(os.path.dirname(__file__), './compiled_funcs'))
