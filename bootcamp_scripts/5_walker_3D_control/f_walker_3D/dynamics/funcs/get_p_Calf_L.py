@@ -1,6 +1,6 @@
 import numpy as np
 from sympy import *
-# AUTO-GENERATE @ 2024-10-20 19:26:07
+# AUTO-GENERATE @ 2024-10-22 14:00:04
 
 def get_p_Calf_L(x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2):
 

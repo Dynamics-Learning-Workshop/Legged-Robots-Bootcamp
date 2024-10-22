@@ -191,47 +191,39 @@ def main():
     p_Calf_R = T_RK_2_I @ sp.Matrix([0,-w,-(l1+l2/2),1]) 
 
 
-    var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2]
+    
     # hip_mid @ init
     p_Hip_L_init = -p_LA # with x = 0, y = 0, z = 0
     p_Hip_R_init = -p_RA # with x = 0, y = 0, z = 0
     # hip_mid + p_LA = ankle position
     # when start, ankle position is on ground, and set this as the starting point and infer the rest
     
+    F = sp.symbols('F', real=True)
+    P_L = F * (p_LK - p_LA) / l2
+    P_R = F * (p_RK - p_RA) / l2
+    
     # FUNCTIONS FILES
-    gen_func_file(expr_name='p_B', expr=p_B, var=var, datatype='posi')
-    gen_func_file(expr_name='p_H', expr=p_H, var=var, datatype='posi')
-    
-    gen_func_file(expr_name='p_LH', expr=p_LH, var=var, datatype='posi')
-    gen_func_file(expr_name='p_RH', expr=p_RH, var=var, datatype='posi')
-    
-    gen_func_file(expr_name='p_LK', expr=p_LK, var=var, datatype='posi')
-    gen_func_file(expr_name='p_RK', expr=p_RK, var=var, datatype='posi')
-    
-    gen_func_file(expr_name='p_LA', expr=p_LA, var=var, datatype='posi')
-    gen_func_file(expr_name='p_RA', expr=p_RA, var=var, datatype='posi')
-    
-    gen_func_file(expr_name='p_Torso', expr=p_Torso, var=var, datatype='posi')
-    gen_func_file(expr_name='p_Thigh_L', expr=p_Thigh_L, var=var, datatype='posi')
-    gen_func_file(expr_name='p_Thigh_R', expr=p_Thigh_R, var=var, datatype='posi')
-    gen_func_file(expr_name='p_Calf_L', expr=p_Calf_L, var=var, datatype='posi')
-    gen_func_file(expr_name='p_Calf_R', expr=p_Calf_R, var=var, datatype='posi')
-    
-    gen_func_file(expr_name='p_Hip_L_init', expr=p_Hip_L_init, var=var, datatype='posi')
-    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var, datatype='posi')
-    
-    gen_func_file(expr_name='p_Hip_R_init', expr=p_Hip_R_init, var=var, datatype='posi')
-    
-    gen_func_file(expr_name='collision', expr=p_LA[2]-p_RA[2], var=var, datatype='value')
+    var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2, F]
+    gen_func_file(expr_name='P_L', expr=P_L, var=var, datatype='vec')
+    gen_func_file(expr_name='P_R', expr=P_R, var=var, datatype='vec')
     
     folder_des = os.path.abspath(os.path.join(os.path.dirname(__file__), './compiled_funcs'))
-    with open(folder_des + "/collision.pkl", "wb") as file:
-        pickle.dump(p_LA[2]-p_RA[2], file)
+    with open(folder_des + "/P_L.pkl", "wb") as file:
+        pickle.dump(P_L, file)
         
-    with open(folder_des + "/collision.pkl", "rb") as file:
-        colli_mat = pickle.load(file)
-    # print(colli_mat.shape)
-    print("colli Mat loaded successfully.")
+    with open(folder_des + "/P_L.pkl", "rb") as file:
+        P_L = pickle.load(file)
+    print(P_L.shape)
+    print("P_L Mat loaded successfully.")
+    
+    with open(folder_des + "/P_R.pkl", "wb") as file:
+        pickle.dump(P_R, file)
+        
+    with open(folder_des + "/P_R.pkl", "rb") as file:
+        P_R = pickle.load(file)
+    print(P_R.shape)
+    print("P_R Mat loaded successfully.")
+    
         
     t_end = time.time()
     print('END, TIME: ', t_end - t_now)

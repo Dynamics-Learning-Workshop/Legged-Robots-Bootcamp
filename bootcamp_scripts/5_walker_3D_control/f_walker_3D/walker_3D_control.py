@@ -2,11 +2,9 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import numpy as np
-import importlib
 import time as time
-import pickle
-from sympy.utilities.autowrap import autowrap
 import sympy as sp
+from sympy import *
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), './dynamics/compiled_funcs')))
 
@@ -17,6 +15,12 @@ from J_l_ss.wrapper_module_0 import autofunc_c as get_J_l_ss_cy
 from J_r_ss.wrapper_module_0 import autofunc_c as get_J_r_ss_cy
 from Jdot_l_ss.wrapper_module_0 import autofunc_c as get_Jdot_l_ss_cy
 from Jdot_r_ss.wrapper_module_0 import autofunc_c as get_Jdot_r_ss_cy
+from collision.wrapper_module_0 import autofunc_c as get_collision_cy
+from P_L.wrapper_module_0 import autofunc_c as get_P_L_cy
+from P_R.wrapper_module_0 import autofunc_c as get_P_R_cy
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+from dynamics_bootcamp import Integrator as inte, Simulation3D as sim3D, RobotUtils as util
 
 # SAVE DATA FOR VISUALIZATION
 t_all = []
@@ -295,6 +299,18 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
     
     return tau.flatten()
 
+def get_collision(x, para_kine):
+    q = x[0:14]
+    x,y,z,roll,pitch,yaw, roll_lh,pitch_lh,yaw_lh,pitch_lk, roll_rh,pitch_rh,yaw_rh,pitch_rk = q
+    w, l0, l1, l2 = param_kine
+    
+    colli_argu = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l1, l2]
+    colli = get_collision_cy(*colli_argu)
+    
+    return colli
+
+
+
 # START HERE!
 # 1. INITIALIZATION
 l0 = 1;
@@ -322,18 +338,17 @@ param_dyna = [g, mb, mt, mc, Ibx, Iby, Ibz, Itx, Ity, Itz, Icx, Icy, Icz]
 which_leg = 'l' # we start with left leg
 
 dof = 14
-x = np.zeros(14*2)
+x_rk4 = np.zeros(14*2)
 
 # TESTING
 t_now = time.time()
 u = np.zeros((8,1))
-f_single_stance(x, u, param_kine, param_dyna, which_leg)
-t_cy = time.time() - t_now
-print("COMPUTATION TIME, ", t_cy)
+f_single_stance(x_rk4, u, param_kine, param_dyna, which_leg)
 
-if t_cy > 1.0:
-    print('CYTHON NOT USED, CHECK COMPILATION FILES!')
-    exit()
+
+# if t_cy > 1.0:
+#     print('CYTHON NOT USED, CHECK COMPILATION FILES!')
+#     exit()
 
 # 2. FIND FIX POINT FOR POINCARE MAP
 
@@ -348,8 +363,8 @@ for i in range(ctrller_dof):
 print(traj_coeffs.shape)
 get_ref(traj_coeffs,0,tf_one_step)
 
-gen_control_partitioning(
-    x=x,
+tau = gen_control_partitioning(
+    x=x_rk4,
     traj_coeff=traj_coeffs,
     t_now=0,
     tf_one_step=1.1,
@@ -357,5 +372,14 @@ gen_control_partitioning(
     param_dyna=param_dyna,
     which_leg='r'
 )
-    
+
+print(tau.shape)
+
+t_now = time.time()
+q_rk4 = x_rk4[0:14]
+
+colli = get_collision(x_rk4, param_kine)
+
+t_cy = time.time() - t_now
+print("COMPUTATION TIME, ", t_cy*5000)
 print("END")

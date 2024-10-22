@@ -3,6 +3,7 @@ import sys
 import os
 import numpy as np
 import importlib
+import time as time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 from dynamics_bootcamp import Integrator as inte, Simulation3D as sim3D, RobotUtils as util
@@ -31,7 +32,7 @@ param = np.array([w, l0, l1, l2])
 
 x,y,z,roll,pitch,yaw, roll_lh,pitch_lh,yaw_lh, roll_rh,pitch_rh,yaw_rh, pitch_lk, pitch_rk = q
 
-
+t_now = time.time()
 p_H = sim3D().get_p_H(*q,*param) # head
 print(p_H)
 p_B = sim3D().get_p_B(*q,*param)
@@ -110,6 +111,8 @@ def save_data(q):
     return
 save_data(q)
 
+print('time:', (time.time() - t_now) * 500)
+
 exit()
 
 sim3D().anime(
@@ -134,7 +137,7 @@ sim3D().anime(
     mission='Walk',
     sim_object='3Dwalker',
     sim_info={'w': w, 'l0': l0, 'l1': l1, 'l2': l2},
-    save=True,
+    save=False,
     save_name='3Dwalker'
 )
 
