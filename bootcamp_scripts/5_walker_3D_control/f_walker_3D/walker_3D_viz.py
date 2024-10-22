@@ -113,7 +113,7 @@ save_data(q)
 
 print('time:', (time.time() - t_now) * 500)
 
-exit()
+# exit()
 
 sim3D().anime(
     t=t_all,

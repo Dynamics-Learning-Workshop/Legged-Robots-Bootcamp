@@ -502,3 +502,49 @@ while True:
         break
 
 draw_anime(True)
+
+
+def test_funcs():
+    t_now = time.time()
+    u = np.zeros((8,1))
+    
+    q_fix = np.zeros(11)
+    qdot_fix = np.zeros(11)
+    
+    x_rk4, param_kine, param_dyna, which_leg = init(q_fix, qdot_fix)
+    
+    haha = f_single_stance(x_rk4, u, param_kine, param_dyna, which_leg)
+    print(haha.shape)
+    exit()
+    ctrller_dof = 8
+    traj_coeffs = np.zeros((8,6))
+    tf_one_step = 1.1
+
+    for i in range(ctrller_dof):    
+        traj_coeffs[i,:] = traj_setting(1,2,3,4,5,6,7,8)
+
+    print(traj_coeffs.shape)
+    get_ref(traj_coeffs,0,tf_one_step)
+
+    tau = gen_control_partitioning(
+        x=x_rk4,
+        traj_coeff=traj_coeffs,
+        t_now=0,
+        tf_one_step=1.1,
+        param_kine=param_kine,
+        param_dyna=param_dyna,
+        which_leg='r'
+    )
+
+    # print(tau.shape)
+
+    t_now = time.time()
+    q_rk4 = x_rk4[0:14]
+
+    colli = get_collision(x_rk4, param_kine)
+
+    foot_strike = f_foot_strike(x_rk4, param_kine, param_dyna, which_leg)
+
+    t_cy = time.time() - t_now
+    print("COMPUTATION TIME, ", t_cy)
+    print("END")

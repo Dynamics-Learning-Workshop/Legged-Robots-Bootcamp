@@ -201,6 +201,8 @@ def main():
     F = sp.symbols('F', real=True)
     P_L = F * (p_LK - p_LA) / l2
     P_R = F * (p_RK - p_RA) / l2
+    P_L = sp.Matrix(P_L[0:3])
+    P_R = sp.Matrix(P_R[0:3])
     
     # FUNCTIONS FILES
     var = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2, F]

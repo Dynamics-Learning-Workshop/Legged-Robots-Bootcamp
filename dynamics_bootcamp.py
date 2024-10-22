@@ -88,7 +88,7 @@ class Integrator():
             
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6
    
-    def rkdp(self, func, x, h, u=0, ctrl_on=False, events=None):
+    def rkdp(self, func, x, h, u=0, args=[], ctrl_on=False):
         a21 = 1 / 5
         a31, a32 = 3 / 40, 9 / 40
         a41, a42, a43 = 44 / 55, -56 / 15, 32 / 9
@@ -100,21 +100,21 @@ class Integrator():
         B = np.array((35 / 384, 0, 500 / 1113, 125 / 192, -2187 / 6784, 11 / 84))
         
         if ctrl_on:
-            k1 = func(x, u)
-            k2 = func(x + h * a21 * k1, u)
-            k3 = func(x + h * (a31 * k1 + a32 * k2), u)
-            k4 = func(x + h * (a41 * k1 + a42 * k2 + a43 * k3), u)
-            k5 = func(x + h * (a51 * k1 + a52 * k2 + a53 * k3 + a54 * k4), u)
-            k6 = func(x + h * (a61 * k1 + a62 * k2 + a63 * k3 + a64 * k4 + a65 * k5), u)
+            k1 = func(x, u, *args)
+            k2 = func(x + h * a21 * k1, u, *args)
+            k3 = func(x + h * (a31 * k1 + a32 * k2), u, *args)
+            k4 = func(x + h * (a41 * k1 + a42 * k2 + a43 * k3), u, *args)
+            k5 = func(x + h * (a51 * k1 + a52 * k2 + a53 * k3 + a54 * k4), u, *args)
+            k6 = func(x + h * (a61 * k1 + a62 * k2 + a63 * k3 + a64 * k4 + a65 * k5), u, *args)
 
             k = np.array((k1, k2, k3, k4, k5, k6))
         else:
-            k1 = func(x)
-            k2 = func(x + h * a21 * k1)
-            k3 = func(x + h * (a31 * k1 + a32 * k2))
-            k4 = func(x + h * (a41 * k1 + a42 * k2 + a43 * k3))
-            k5 = func(x + h * (a51 * k1 + a52 * k2 + a53 * k3 + a54 * k4))
-            k6 = func(x + h * (a61 * k1 + a62 * k2 + a63 * k3 + a64 * k4 + a65 * k5))
+            k1 = func(x, *args)
+            k2 = func(x + h * a21 * k1, *args)
+            k3 = func(x + h * (a31 * k1 + a32 * k2), *args)
+            k4 = func(x + h * (a41 * k1 + a42 * k2 + a43 * k3), *args)
+            k5 = func(x + h * (a51 * k1 + a52 * k2 + a53 * k3 + a54 * k4), *args)
+            k6 = func(x + h * (a61 * k1 + a62 * k2 + a63 * k3 + a64 * k4 + a65 * k5), *args)
 
             k = np.array((k1, k2, k3, k4, k5, k6))
             
@@ -682,7 +682,7 @@ class Simulation3D(RobotUtils, Walker3DModelling):
         # Set plot limits and labels
         self.ax.set_xlim(xmin, xmax)
         self.ax.set_ylim(ymin, ymax)
-        self.ax.set_zlim(zmin, zmax)
+        self.ax.set_zlim(0, zmax)
         self.ax.set_xlabel('X')
         self.ax.set_ylabel('Y')
         self.ax.set_zlabel('Z')
