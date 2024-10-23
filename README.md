@@ -10,8 +10,9 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
 
     Goal:
     <p align="center">
-      <img src="/viz/walker3D_control_partition_gif.gif"/>
+      <img src="/viz/walker3D_control_partition_gif.gif" alt="Walker 3D Control Partition" style="width: 100%;"/>
     </p>
+
     via:
     <table align="center">
       <tr>
