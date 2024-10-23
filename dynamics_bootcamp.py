@@ -713,6 +713,9 @@ class Simulation3D(RobotUtils, Walker3DModelling):
             blit=True
         )
         
+        print(len(t))
+        print(1000/ms)
+        
         if save:
             ani.save( save_name + '.mp4', writer='ffmpeg', fps=1000/ms)  # Match to real-time playback speed
         

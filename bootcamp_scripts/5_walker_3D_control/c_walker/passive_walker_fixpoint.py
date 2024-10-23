@@ -345,15 +345,21 @@ def f_lala(x):
     result = P(x)
     if np.any(np.isnan(result)):  # Check for NaN in the output
         return np.full_like(result, np.inf)  # Return infinities for failed cases
+    print("HERE AFTER ONE OPTIMIZATION")
+    # print(x)
+    print()
+    print(np.linalg.norm(x - result))
     return x - result
 
 
 
-# print(x_rk4)
-# x_lala = opt.fsolve(f_lala, x_rk4, xtol=1e-6,)
-# print(x_lala)
-# print("END FIXPOINT SEARCH")
-# x_rk4 = x_lala
+print(x_rk4)
+x_lala = opt.fsolve(f_lala, x_rk4, xtol=1e-6,)
+print(x_lala)
+print("END FIXPOINT SEARCH")
+x_rk4 = x_lala
+
+exit()
 
 x_rk4 = np.array([ 0.11263063, -0.22557703, -0.15939688, 0.02410867])
 

@@ -5,6 +5,8 @@ import numpy as np
 import time as time
 import sympy as sp
 from sympy import *
+import scipy.optimize as opt
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), './dynamics/compiled_funcs')))
 
@@ -235,13 +237,6 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
         s = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk]
         v = [droll, dpitch, dyaw, droll_rh, dpitch_rh, dyaw_rh, dpitch_lk, dpitch_rk]
         
-        # print()
-        # print('lala')
-        # print(pitch_rk)
-        # print(s_ref[7])
-        # print()
-        # exit()
-        
     elif which_leg == 'r':
         J_r_argu = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l1, l2]
         Jdot_r_argu = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_rk, droll, dpitch, dyaw, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk, w, l1, l2] 
@@ -274,17 +269,11 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
         s = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, pitch_rk]
         v = [droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, dpitch_rk]
         
-        # print()
-        # print('lala')
-        # print(pitch_lk)
-        # print(s_ref[6])
-        # print()
-        
     else:   
         print("CHECK WHICH_LEG")
         exit()
         
-    Kp = 1000
+    Kp = 100
     Kd = 2 * np.sqrt(Kp)
     AAinv = np.linalg.inv(AA)
     
@@ -296,9 +285,7 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
     # SAinvB = S @ AAinv @ B_ctrl_mat
     # SAinvB_inv = np.linalg.inv(SAinvB)
     # tau = SAinvB_inv @ (q_ddot_c - S @ AAinv @ bb);
-    # if which_leg == 'l':
-    #     print(S)
-    #     exit()
+
     A_lin = S @ AAinv @ B_ctrl_mat    
     q_ddot_c = np.array([q_ddot_c]).transpose()
     b_lin = (q_ddot_c - S @ AAinv @ bb)
@@ -334,6 +321,12 @@ def f_foot_strike(x, param_kine, param_dyna, which_leg):
     J_l_fs = get_J_l_ss_cy(*J_l_argu)
     J_r_fs = get_J_r_ss_cy(*J_r_argu)
     
+    P_L_argu = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, l1, l2, F]
+    P_R_argu = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_rk, l1, l2, F]
+    
+    P_L = get_P_L_cy(*P_L_argu)
+    P_R = get_P_R_cy(*P_R_argu)
+    
     mass_matrix_argu = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l0, l1, l2, mb, mt, mc, Ibx, Iby, Ibz, Itx, Ity, Itz, Icx, Icy, Icz]
     M = get_Mass_matrix_cy(*mass_matrix_argu)
     
@@ -344,9 +337,7 @@ def f_foot_strike(x, param_kine, param_dyna, which_leg):
         J_st = J_r_fs # stance
         J_sw = J_l_fs # swing
         
-        P_R_argu = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_rk, l1, l2, F]
-        P_R = get_P_R_cy(*P_R_argu)
-        
+        # P_R = np.zeros((3,1))
         b_fs[0:14] = J_st.transpose() @ P_R + np.array([M @ qdot_minus]).T
         
         A_fs[0:14, 0:14] = M
@@ -355,16 +346,55 @@ def f_foot_strike(x, param_kine, param_dyna, which_leg):
                 
         x_new = np.linalg.solve(A_fs, b_fs)
         
+        # print("HEREREERERE")
+        # print(F)
+        # print()
+        # # print(J_sw.transpose() @ P_R)
+        # # print(np.array([M @ qdot_minus]))
+        # print(J_st)
+        # # print(P_R)
+        
+        # print(b_fs)
+        # print()
+        # print('here')
+        # print()
+        # print(x_new)
+        # exit()
+#    1.422403916953874
+#    0.168988534317824
+#    0.500620129819512
+
+#   -0.012972034380743
+#   -0.058312984939275
+#    1.538845716650764
+
+#   -0.144273084817784
+#   -0.472876768116811
+#   -1.600741574501896
+#   -1.897382814466572
+
+#    0.439880719465252
+#   -1.006952358253448
+#    1.992826876177882
+#   -0.656080499837396
+
+#  -21.627344275122404
+#   -0.852207633085055
+#   49.543701408820830
+        # exit()
+        
     elif which_leg == 'l':
         J_st = J_l_fs # stance
         J_sw = J_r_fs # swing
         
-        P_L_argu = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, l1, l2, F]
-        P_L = get_P_L_cy(*P_L_argu)
-
+        # print(P_R.shape)
+        lala = np.array([M @ qdot_minus])
+        # print(lala.shape)
         b_fs[0:14] = J_st.transpose() @ P_L + np.array([M @ qdot_minus]).T
         
         A_fs[0:14, 0:14] = M
+        # print()
+        # print(J_sw.shape)
         A_fs[0:14, 14:17] = -J_sw.transpose()
         A_fs[14:17, 0:14] = J_sw
                 
@@ -403,7 +433,7 @@ def init(q_fix, qdot_fix):
     Icy = 0.15
     Icz = 1
 
-    F = 0.60 * (mb + 2 * mt + 2 * mc) * np.sqrt(g * (l1+l2))
+    F = 0.18 * (mb + 2 * mt + 2 * mc) * np.sqrt(g * (l1+l2))
 
     param_kine = [w, l0, l1, l2]
     param_dyna = [g, mb, mt, mc, Ibx, Iby, Ibz, Itx, Ity, Itz, Icx, Icy, Icz, F]
@@ -498,37 +528,27 @@ dpitch_rk = -0.000000000000031
 q_fix = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk]
 qdot_fix = [droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk]
 
-# q_fix = [-0.04389255, -0.06571901, -0.00175553,  0.07567546,  0.02671035,  0.00323625, -0.03994828, -0.02345805, -0.05655095, -0.2925124,  -0.01527097]
-# qdot_fix = [-0.53886243, -0.19287034, -0.23827584,  0.54603717,  0.33599716,  0.32457124, -0.86617886, -0.650402,    0.0638597,  -0.31429277, -0.13284889]
-
 ##################################################
 # 3. SET TRAJECTORY
 def get_traj_coeff(x_rk4, which_leg):
-    print("GET TRAJ", which_leg)
+    # print("GET TRAJ")
     x,y,z,roll,pitch,yaw, roll_lh,pitch_lh,yaw_lh,pitch_lk, roll_rh,pitch_rh,yaw_rh, pitch_rk = x_rk4[0:14]
     dx,dy,dz,droll,dpitch,dyaw, droll_lh,dpitch_lh,dyaw_lh,dpitch_lk, droll_rh,dpitch_rh,dyaw_rh,dpitch_rk = x_rk4[14:28]
     
     if which_leg == 'r':
         x_ref_0 = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, pitch_rk]
-        # x_ref_0 = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, -0.999999999999981, pitch_rk]
         # x_ref_0 = [0.0, -0.0, -6e-15, 6e-15, -2e-15, -1.3e-14, -0.999999999999981, -1e-15]
         v_ref_0 = [droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, dpitch_rk]
     elif which_leg == 'l':
-        # x_ref_0 = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk]
-        x_ref_0 = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_rk, pitch_lk-0.4]
-        # x_ref_0 = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_lk, -1.5999999999999981]
+        x_ref_0 = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk]
         # x_ref_0 = [0.0, -0.0, -6e-15, 6e-15, -2e-15, -1.3e-14, -0.999999999999981, -1e-15]
-        v_ref_0 = [droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_rk, dpitch_lk]
+        v_ref_0 = [droll, dpitch, dyaw, droll_rh, dpitch_rh, dyaw_rh, dpitch_lk, dpitch_rk]
     else:
         print("CHECK WHICH_LEG")
         exit()
 
     x_ref_f = [0,0,0,0,0.375,0,0,0]
-    print()
-    print('TRAJ COEFF')
-    print(x_ref_0)
-    print()
-    print(x_ref_f)
+
     # if which_leg == 'l':
         # exit()
     v_ref_f = [0,0,0,0,0,0,0,0]
@@ -558,40 +578,40 @@ def get_traj_coeff(x_rk4, which_leg):
     return traj_coeffs, tf
 
 sample_factor = 10
-acc_factor = 0.5
+acc_factor = 1
 def draw_anime(success, param_kine):
     if success:
         print('SYSTEM INTEGRATION SUCCEEDED...')
-        save_name = "walker3D_control_partition"
+        save_name = "passive_walker_control_partition"
     else:
         print('SYSTEM INTEGRATION FAILED...')
-        save_name = "walker3D_control_partition" + "_failed"
+        save_name = "passive_walker_control_partition" + "_failed"
     print('FPS:', 1000 / (1000 * t_step * sample_factor))
     print('ACC:', acc_factor)
     w, l0, l1, l2 = param_kine
     sim3D().anime(
-        t=t_all[::int(sample_factor * acc_factor)],
+        t=t_all[::sample_factor * acc_factor],
         x_states=[
-            x0_all_rk4[::int(sample_factor * acc_factor)],
-            x1_all_rk4[::int(sample_factor * acc_factor)],
-            x2_all_rk4[::int(sample_factor * acc_factor)],
-            x3_all_rk4[::int(sample_factor * acc_factor)],
-            x4_all_rk4[::int(sample_factor * acc_factor)],
-            x5_all_rk4[::int(sample_factor * acc_factor)],
-            x6_all_rk4[::int(sample_factor * acc_factor)],
-            x7_all_rk4[::int(sample_factor * acc_factor)],
-            x8_all_rk4[::int(sample_factor * acc_factor)],
-            x9_all_rk4[::int(sample_factor * acc_factor)],
-            x10_all_rk4[::int(sample_factor * acc_factor)],
-            x11_all_rk4[::int(sample_factor * acc_factor)],
-            x12_all_rk4[::int(sample_factor * acc_factor)],
-            x13_all_rk4[::int(sample_factor * acc_factor)],
+            x0_all_rk4[::sample_factor * acc_factor],
+            x1_all_rk4[::sample_factor * acc_factor],
+            x2_all_rk4[::sample_factor * acc_factor],
+            x3_all_rk4[::sample_factor * acc_factor],
+            x4_all_rk4[::sample_factor * acc_factor],
+            x5_all_rk4[::sample_factor * acc_factor],
+            x6_all_rk4[::sample_factor * acc_factor],
+            x7_all_rk4[::sample_factor * acc_factor],
+            x8_all_rk4[::sample_factor * acc_factor],
+            x9_all_rk4[::sample_factor * acc_factor],
+            x10_all_rk4[::sample_factor * acc_factor],
+            x11_all_rk4[::sample_factor * acc_factor],
+            x12_all_rk4[::sample_factor * acc_factor],
+            x13_all_rk4[::sample_factor * acc_factor],
         ],
         ms=10,
         mission='Walk',
         sim_object='3Dwalker',
         sim_info={'w': w, 'l0': l0, 'l1': l1, 'l2': l2},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
@@ -604,7 +624,7 @@ def draw_anime(success, param_kine):
 x_rk4, param_kine, param_dyna, which_leg = init(q_fix, qdot_fix)
 # print(x_rk4)
 # exit()
-no_of_steps = 4
+no_of_steps = 2
 fsm = 'single_stance'
 t_now = 0
 t_step = 1e-3
@@ -612,12 +632,144 @@ last_event = 0
 walk_i = 0
 
 t_step_start = t_now
-x_fix = x_rk4
+
+def P(x):
+
+    roll,pitch,yaw, roll_lh,pitch_lh,yaw_lh,pitch_lk, roll_rh,pitch_rh,yaw_rh,pitch_rk = x[0:11]
+    
+    droll,dpitch,dyaw, droll_lh,dpitch_lh,dyaw_lh,dpitch_lk, droll_rh,dpitch_rh,dyaw_rh,dpitch_rk = x[11:22]
+    
+    x = 0
+    y = 0
+    z = 0
+    dx = 0
+    dy = 0
+    dz = 0
+    
+    q = np.array([x,y,z,roll,pitch,yaw, roll_lh,pitch_lh,yaw_lh,pitch_lk, roll_rh,pitch_rh,yaw_rh,pitch_rk])
+    qdot = np.array([dx,dy,dz,droll,dpitch,dyaw, droll_lh,dpitch_lh,dyaw_lh,dpitch_lk, droll_rh,dpitch_rh,dyaw_rh,dpitch_rk])
+    p_Hip_I = sim3D().get_p_Hip_R_init(0,0,0,*q[3:],*param_kine)
+    v_Hip_I = sim3D().get_v_Hip_R_init(0,0,0,*q[3:],0,0,0,*qdot[3:],*param_kine)
+    
+    q[0:3] = p_Hip_I
+    qdot[0:3] = v_Hip_I
+
+    x_rk4 = np.array([*q,*qdot])
+    
+    fsm = 'single_stance'
+    t_now = 0
+    t_step = 1e-3
+    last_event = 0
+    t_step_start = t_now
+    while True:
+        if fsm == 'single_stance':
+            # print(which_leg)
+            traj_coeff, tf_one_step = get_traj_coeff(x_rk4, which_leg)
+            while True:           
+                # print(t_now-t_step_start) 
+                u = gen_control_partitioning(
+                    x=x_rk4,
+                    traj_coeff=traj_coeff,
+                    t_now=t_now-t_step_start,
+                    tf_one_step=tf_one_step,
+                    param_kine=param_kine,
+                    param_dyna=param_dyna,
+                    which_leg=which_leg
+                )
+                
+                x_rk4_new = inte().rkdp(
+                    f_single_stance,
+                    x=x_rk4,
+                    u=u,
+                    h=t_step,
+                    args=[param_kine, param_dyna, which_leg],
+                    ctrl_on=True
+                )
+                
+                if x_rk4[2] < -1e-4 or x_rk4[2] > 2 + 1e-4:
+                    return np.nan * np.ones_like(x_rk4)
+                    # print(x_rk4[2])
+                    # draw_anime(False, param_kine=param_kine)
+            
+                t_now = t_now + t_step    
+                x_rk4 = x_rk4_new
+                
+                current_event = get_collision(x=x_rk4, param_kine=param_kine)
+            
+                if current_event * last_event < 0:
+                    # print()
+                    # print(current_event)
+                    # print(last_event)
+                    # print(current_event * last_event)
+                    # print()
+                    fsm = 'foot_strike'
+                    # print("FOOT STRIKE!!!!!!!!!!!!!!!!!!!")
+                    
+                    break
+                last_event = current_event
+                # print(t_now)
+        elif fsm == 'foot_strike':  
+            x_rk4 = f_foot_strike(
+                x=x_rk4,
+                param_kine=param_kine,
+                param_dyna=param_dyna,
+                which_leg=which_leg
+            )
+            
+            return x_rk4
+
+def f_lala(x):
+
+    result = P(x)
+    if np.any(np.isnan(result)):  # Check for NaN in the output
+        return np.full_like(result, np.inf)  # Return infinities for failed cases
+
+    x_obj_init = np.array([
+        *x[0:3], *x[11:14], 
+        *x[3:7], *x[14:18],   
+        *x[7:11], *x[18:22]]) # l, r
+    
+    print(x_obj_init.shape)
+    
+    x_obj_end = np.array([
+        *result[3:6], *result[17:20], 
+        *result[10:14], *result[24:28],
+        *result[6:10], *result[20:24],]) # r, l
+    
+    print(x_obj_end.shape)
+
+    print("HERE AFTER ONE ITERATION IN OPTIMIZATION")
+    # print(x)
+    print(np.linalg.norm(x_obj_end - x_obj_init))
+    print()
+
+    return x_obj_init - x_obj_end
+
+# x_obj = np.array([-8.55352329e-03, -1.13522480e-03,  7.61806003e-03,  8.52454327e-02,-4.64678981e-02,  6.88216266e-03, -4.56955923e-02, -3.86937936e-04,2.11474667e-02, -9.42578850e-02,  4.35923378e-03, -3.35324985e-01, 1.70532805e-01, -1.54311993e-01,  6.41431781e-01,  8.75178710e-01, 1.86190894e-01, -1.22362330e+00, -4.86739622e-01,  2.74367696e-01,-4.17924127e-01, -3.80963886e-02])
+
+# x_obj = np.array([
+#  -0.04389255, -0.06571901, -0.00175553,  0.07567546,  0.02671035,  0.00323625,
+#  -0.03994828, -0.02345805, -0.05655095, -0.2925124,  -0.01527097, -0.53886243,
+#  -0.19287034, -0.23827584,  0.54603717,  0.33599716,  0.32457124, -0.86617886,
+#  -0.650402,    0.0638597,  -0.31429277, -0.13284889
+#  ])
+
+x_obj = np.zeros(22)
+print(x_obj)
+# exit()
+
+# x_lala = opt.fsolve(f_lala, x_obj, xtol=1e-6,)
+x_lala = opt.root(f_lala, x_obj,method='hybr', tol=1e-6,)
+
+print(x_lala)
+print("END FIXPOINT SEARCH")
+# x_rk4 = x_lala
+exit()
 
 while True:
     if fsm == 'single_stance':
         print(which_leg)
-        traj_coeff, tf_one_step = get_traj_coeff(x_fix, which_leg)        
+        traj_coeff, tf_one_step = get_traj_coeff(x_rk4, which_leg)
         while True:           
             # print(t_now-t_step_start) 
             u = gen_control_partitioning(
@@ -653,13 +805,6 @@ while True:
             # print(current_event)
             if current_event * last_event < 0:
                 print()
-                print("WILL SWITCH!!!!")
-                print(current_event)
-                print(last_event)
-                print(current_event * last_event)
-                print()
-            if current_event * last_event < 0:
-                print()
                 print(current_event)
                 print(last_event)
                 print(current_event * last_event)
@@ -677,15 +822,6 @@ while True:
             param_dyna=param_dyna,
             which_leg=which_leg
         )
-        print()
-        print()
-        print()
-        print()
-        print(x_rk4)
-        print()
-        print()
-        print()
-        print()
         
         if which_leg == 'l':
             which_leg = 'r'
@@ -707,3 +843,7 @@ while True:
         
         print("ONE STEP END,", walk_i)
         print("============\n")
+        
+        
+        
+        
