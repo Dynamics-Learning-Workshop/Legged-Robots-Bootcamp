@@ -13,10 +13,9 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
     [Download the video](/viz/passive_walker_control_partition.mp4)
     [Download the video](/viz/walker3D_control_partition.mp4)
     [Download the video](/viz/bounce_3D.mp4)
-    <video width="600" controls>
-      <source src="/viz/bounce_3D.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
+    <p align="center">
+      <img src="viz/projectile.mp4" width="500" height="300"/>
+    </p>
     
 2.  
 ## Reference
