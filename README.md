@@ -7,7 +7,8 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
     - [Passive Walker](/bootcamp_scripts/3_passive_walker/README.md)
     - [Walker Control](/bootcamp_scripts/4_walker_control/README.md)
     - [3D Walker Control](/bootcamp_scripts/5_walker_3D_control/README.md)
-    [Download the video](/viz/projectile.mp4)
+
+    [!Download the video](/viz/projectile.mp4)
     [Download the video](/viz/raibert_hopper_200.mp4)
     [Download the video](/viz/double_pendulum_cartesian_control.mp4)
     [Download the video](/viz/passive_walker_control_partition.mp4)
