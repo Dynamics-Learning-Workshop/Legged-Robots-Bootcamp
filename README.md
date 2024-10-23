@@ -14,7 +14,7 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
     [Download the video](/viz/walker3D_control_partition.mp4)
     [Download the video](/viz/bounce_3D.mp4)
     <p align="center">
-      <img src="/viz/walker3D_control_partition.gif"/>
+      <img src="/viz/walker3D_control_partition_gif.gif"/>
     </p>
     
 2.  
