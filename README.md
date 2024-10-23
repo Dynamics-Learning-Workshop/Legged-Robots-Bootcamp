@@ -16,7 +16,7 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
     <table>
   <tr>
       <td align="center">
-        <img src="/viz/projectile.gif" alt="Projectile" width="300"/>
+        <img src="/viz/bounce_3D.gif" alt="Projectile" width="300"/>
       </td>
       <td align="center">
         <img src="/viz/raibert_hopper_200.gif" alt="Raibert Hopper" width="300"/>
