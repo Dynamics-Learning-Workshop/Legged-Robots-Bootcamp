@@ -1,22 +1,32 @@
 # Bootcamp for Legged Robots
 ## Introduction
 This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadrupeds. In which, we have three main camps:
-1.  Naive simulator from scratch, which consists the development of:
+1. $\texttt{3D walker}$: Naive simulator from scratch, which consists the development of:
     - [Hopper](/bootcamp_scripts/1_hopper_dynamics/README.md)
     - [Hopper Control](/bootcamp_scripts/2_hopper_control/README.md)
     - [Passive Walker](/bootcamp_scripts/3_passive_walker/README.md)
     - [Walker Control](/bootcamp_scripts/4_walker_control/README.md)
     - [3D Walker Control](/bootcamp_scripts/5_walker_3D_control/README.md)
 
-    [!Download the video](/viz/projectile.mp4)
-    [Download the video](/viz/raibert_hopper_200.mp4)
-    [Download the video](/viz/double_pendulum_cartesian_control.mp4)
-    [Download the video](/viz/passive_walker_control_partition.mp4)
-    [Download the video](/viz/walker3D_control_partition.mp4)
-    [Download the video](/viz/bounce_3D.mp4)
+    Goal:
     <p align="center">
       <img src="/viz/walker3D_control_partition_gif.gif"/>
     </p>
+    via:
+    <p align="center">
+      <img src="/viz/projectile.gif"/>
+    </p>
+    <p align="center">
+      <img src="/viz/raibert_hopper_200.gif"/>
+    </p>
+    <p align="center">
+      <img src="/viz/double_pendulum_cartesian_control.gif"/>
+    </p>
+    <p align="center">
+      <img src="/viz/passive_walker_control_partition.gif"/>
+    </p>
+    
+
     
 2.  
 ## Reference
