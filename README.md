@@ -16,25 +16,27 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
     via:
     <table align="center">
       <tr>
+          <td align="center">
+          <img src="/viz/double_pendulum_cartesian_control.gif" alt="Double Pendulum" width="300"/>
+        </td>
+        <td align="center">
+          <img src="/viz/passive_walker_control_partition.gif" alt="Passive Walker" width="300"/>
+        </td>
+      </tr>
+      <tr>
+        <td align="center">
+          <img src="/viz/spring_mass_damper.gif" alt="Spring Mass Damper" width="300"/>
+        </td>
+        <td align="center">
+          <img src="/viz/raibert_hopper_200.gif" alt="Raibert Hopper" width="300"/>
+        </td>
+      </tr>
+      <tr>
         <td align="center">
           <img src="/viz/bounce_3D.gif" alt="Bounce" width="300"/>
         </td>
         <td align="center">
           <img src="/viz/projectile.gif" alt="Projectile" width="300"/>
-        </td>
-        <td align="center">
-          <img src="/viz/spring_mass_damper.gif" alt="Spring Mass Damper" width="300"/>
-        </td>
-      </tr>
-      <tr>
-        <td align="center">
-          <img src="/viz/raibert_hopper_200.gif" alt="Raibert Hopper" width="300"/>
-        </td>
-        <td align="center">
-          <img src="/viz/double_pendulum_cartesian_control.gif" alt="Double Pendulum" width="300"/>
-        </td>
-        <td align="center">
-          <img src="/viz/passive_walker_control_partition.gif" alt="Passive Walker" width="300"/>
         </td>
       </tr>
     </table>
