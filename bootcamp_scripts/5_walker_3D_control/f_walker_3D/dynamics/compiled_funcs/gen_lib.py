@@ -10,7 +10,7 @@ import sympy as sp
 import shutil
 
 
-func_name = 'P_R'
+func_name = 'collision'
 
 x, y, z = sp.symbols('x y z', real=True)
 roll, pitch, yaw = sp.symbols('roll pitch yaw',real=True)

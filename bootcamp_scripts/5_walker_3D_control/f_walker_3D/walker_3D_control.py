@@ -591,7 +591,7 @@ def draw_anime(success, param_kine):
         mission='Walk',
         sim_object='3Dwalker',
         sim_info={'w': w, 'l0': l0, 'l1': l1, 'l2': l2},
-        save=True,
+        save=False,
         save_name=save_name
     )
     exit()
