@@ -17,13 +17,19 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
     <table align="center">
       <tr>
         <td align="center">
-          <img src="/viz/bounce_3D.gif" alt="Projectile" width="300"/>
+          <img src="/viz/bounce_3D.gif" alt="Bounce" width="300"/>
         </td>
         <td align="center">
-          <img src="/viz/raibert_hopper_200.gif" alt="Raibert Hopper" width="300"/>
+          <img src="/viz/projectile.gif" alt="Projectile" width="300"/>
+        </td>
+        <td align="center">
+          <img src="/viz/spring_mass_damper.gif" alt="Spring Mass Damper" width="300"/>
         </td>
       </tr>
       <tr>
+        <td align="center">
+          <img src="/viz/raibert_hopper_200.gif" alt="Raibert Hopper" width="300"/>
+        </td>
         <td align="center">
           <img src="/viz/double_pendulum_cartesian_control.gif" alt="Double Pendulum" width="300"/>
         </td>
