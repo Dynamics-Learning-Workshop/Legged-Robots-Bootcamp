@@ -13,24 +13,24 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
       <img src="/viz/walker3D_control_partition_gif.gif"/>
     </p>
     via:
-    <table>
-  <tr>
-      <td align="center">
-        <img src="/viz/bounce_3D.gif" alt="Projectile" width="300"/>
-      </td>
-      <td align="center">
-        <img src="/viz/raibert_hopper_200.gif" alt="Raibert Hopper" width="300"/>
-      </td>
-    </tr>
-    <tr>
-      <td align="center">
-        <img src="/viz/double_pendulum_cartesian_control.gif" alt="Double Pendulum" width="300"/>
-      </td>
-      <td align="center">
-        <img src="/viz/passive_walker_control_partition.gif" alt="Passive Walker" width="300"/>
-      </td>
-    </tr>
-  </table>
+    <table align="center">
+      <tr>
+        <td align="center">
+          <img src="/viz/bounce_3D.gif" alt="Projectile" width="300"/>
+        </td>
+        <td align="center">
+          <img src="/viz/raibert_hopper_200.gif" alt="Raibert Hopper" width="300"/>
+        </td>
+      </tr>
+      <tr>
+        <td align="center">
+          <img src="/viz/double_pendulum_cartesian_control.gif" alt="Double Pendulum" width="300"/>
+        </td>
+        <td align="center">
+          <img src="/viz/passive_walker_control_partition.gif" alt="Passive Walker" width="300"/>
+        </td>
+      </tr>
+    </table>
 
     
 
