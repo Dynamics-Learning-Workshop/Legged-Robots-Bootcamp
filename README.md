@@ -16,7 +16,7 @@ This is a learning bootcamp of mine for legged robotics, i.e., bipeds and quadru
     via:
     <table align="center">
       <tr>
-          <td align="center">
+        <td align="center">
           <img src="/viz/double_pendulum_cartesian_control.gif" alt="Double Pendulum" width="300"/>
         </td>
         <td align="center">
