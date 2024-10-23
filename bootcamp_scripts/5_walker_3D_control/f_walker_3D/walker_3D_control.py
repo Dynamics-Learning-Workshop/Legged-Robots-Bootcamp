@@ -132,6 +132,13 @@ def f_single_stance(x,u,param_kine, param_dyna, which_leg):
         AA[14:17, 0:14] = J_l_ss
         
         bb[0:14] = N_vec
+        # if which_leg == 'l':
+        #     pass
+        #     print()
+        #     print('here')
+        #     print(qdot)
+        #     print()
+            # exit()
         bb[14:17] = -np.array([Jdot_l_ss @ qdot]).transpose() 
         # u = np.zeros((8,1))
         bb = bb + B_ctrl_mat @ u
@@ -225,6 +232,9 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
         # the controller, yet, it based on the revolusion of hips and knees
         S = S_L
         
+        s = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_lk, pitch_rk]
+        v = [droll, dpitch, dyaw, droll_rh, dpitch_rh, dyaw_rh, dpitch_lk, dpitch_rk]
+        
     elif which_leg == 'r':
         J_r_argu = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_rk, w, l1, l2]
         Jdot_r_argu = [roll, pitch, yaw, roll_rh, pitch_rh, yaw_rh, pitch_rk, droll, dpitch, dyaw, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk, w, l1, l2] 
@@ -254,6 +264,9 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
         # the controller, yet, it based on the revolusion of hips and knees
         S = S_R
         
+        s = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, pitch_rk]
+        v = [droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, dpitch_rk]
+        
     else:   
         print("CHECK WHICH_LEG")
         exit()
@@ -262,8 +275,7 @@ def gen_control_partitioning(x, traj_coeff, t_now, tf_one_step, param_kine, para
     Kd = 2 * np.sqrt(Kp)
     AAinv = np.linalg.inv(AA)
     
-    s = [roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, pitch_rk]
-    v = [droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, dpitch_rk]
+    
     q_ddot_c = a_ref + Kd*(v_ref-v) + Kp*(s_ref-s);
     
     # print()
@@ -322,6 +334,8 @@ def f_foot_strike(x, param_kine, param_dyna, which_leg):
     if which_leg == 'r':
         J_st = J_r_fs # stance
         J_sw = J_l_fs # swing
+        print("HEERERERERERER")
+        # P_R = np.zeros((3,1))
         b_fs[0:14] = J_st.transpose() @ P_R + np.array([M @ qdot_minus]).T
         
         A_fs[0:14, 0:14] = M
@@ -340,21 +354,28 @@ def f_foot_strike(x, param_kine, param_dyna, which_leg):
         
         # print(b_fs)
         # print()
+        # print('here')
+        # print()
         # print(x_new)
-#          1.422403916953874
+        # exit()
+#    1.422403916953874
 #    0.168988534317824
 #    0.500620129819512
+
 #   -0.012972034380743
 #   -0.058312984939275
 #    1.538845716650764
+
 #   -0.144273084817784
 #   -0.472876768116811
 #   -1.600741574501896
 #   -1.897382814466572
+
 #    0.439880719465252
 #   -1.006952358253448
 #    1.992826876177882
 #   -0.656080499837396
+
 #  -21.627344275122404
 #   -0.852207633085055
 #   49.543701408820830
@@ -382,6 +403,8 @@ def f_foot_strike(x, param_kine, param_dyna, which_leg):
     
     
     x = np.array([*q, *x_new[0:14].flatten()])
+    # print(x[14:28])
+    # exit()
     return x
 
 # START HERE!
@@ -519,7 +542,7 @@ def get_traj_coeff(x_rk4, which_leg):
         print("CHECK WHICH_LEG")
         exit()
 
-    x_ref_f = [0,0,0,0,0.375,0,0,0]
+    x_ref_f = [0,0,0,0,0.275,0,0,0]
     # print()
     # print('TRAJ COEFF')
     # print(x_ref_0)
@@ -645,8 +668,8 @@ while True:
             x_rk4 = x_rk4_new
             
             current_event = get_collision(x=x_rk4, param_kine=param_kine)
-            print(current_event)
-            if current_event * last_event < 0 and np.abs(current_event) < 1e-3:
+            # print(current_event)
+            if current_event * last_event < 0:
                 print()
                 print(current_event)
                 print(last_event)
@@ -657,7 +680,7 @@ while True:
                 
                 break
             last_event = current_event
-            # print(t_now)
+            print(t_now)
     elif fsm == 'foot_strike':  
         x_rk4 = f_foot_strike(
             x=x_rk4,

@@ -10,7 +10,7 @@
 #ifndef AUTOWRAP__WRAPPED_CODE_0__H
 #define AUTOWRAP__WRAPPED_CODE_0__H
 
-void autofunc(double roll, double pitch, double yaw, double roll_lh, double pitch_lh, double yaw_lh, double pitch_lk, double w, double l1, double l2, double *out_8129410717289984703);
+void autofunc(double roll, double pitch, double yaw, double roll_lh, double pitch_lh, double yaw_lh, double pitch_lk, double w, double l1, double l2, double *out_5241214194046891435);
 
 #endif
 

@@ -10,7 +10,7 @@ import sympy as sp
 import shutil
 
 
-func_name = 'Mass_matrix'
+func_name = 'P_R'
 
 x, y, z = sp.symbols('x y z', real=True)
 roll, pitch, yaw = sp.symbols('roll pitch yaw',real=True)
@@ -39,7 +39,7 @@ Icx, Icy, Icz = sp.symbols('Icx, Icy, Icz', real=True)
 mb, mt, mc = sp.symbols('mb, mt, mc', real=True) 
 F = sp.symbols('F', real=True) 
 
-q = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk,]
+q = [x, y, z, roll, pitch, yaw, roll_lh, pitch_lh, yaw_lh, pitch_lk, roll_rh, pitch_rh, yaw_rh, pitch_rk]
 qdot = [dx, dy, dz, droll, dpitch, dyaw, droll_lh, dpitch_lh, dyaw_lh, dpitch_lk, droll_rh, dpitch_rh, dyaw_rh, dpitch_rk]
 qddot = [ddx, ddy, ddz, ddroll, ddpitch, ddyaw, ddroll_lh, ddpitch_lh, ddyaw_lh, ddpitch_lk, ddroll_rh, ddpitch_rh, ddyaw_rh, ddpitch_rk]
 
@@ -49,7 +49,7 @@ all_variables = [*q, *qdot, *qddot, *param ]
 
 # HERE LOAD AND COMPILE
 folder_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ''))
-with open(folder_path + "/"+func_name+".pkl", "rb") as file:
+with open(folder_path + "/binaries/"+func_name+".pkl", "rb") as file:
         func = pickle.load(file)
 # print(func.shape)
 
