@@ -8,12 +8,12 @@ find_package(catkin REQUIRED COMPONENTS
     controller_manager
     joint_state_controller
     gazebo_ros
-    genmsg
+    # genmsg
     robot_state_publisher
-    roscpp
-    std_msgs
-    tf
-    geometry_msgs
+    # roscpp
+    # std_msgs
+    # tf
+    # geometry_msgs
     unitree_legged_msgs
     ros_utilities
     # gazebo
