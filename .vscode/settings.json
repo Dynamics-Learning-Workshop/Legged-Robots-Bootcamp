@@ -3,6 +3,14 @@
         "${workspaceFolder}/bootcamp_scripts/5_walker_3D_control/f_walker_3D/",
         "${workspaceFolder}/bootcamp_scripts/5_walker_3D_control/f_walker_3D/dynamics/**",
         "${workspaceFolder}/bootcamp_scripts/5_walker_3D_control/f_walker_3D/dynamics/**"
+    ],
+    "python.autoComplete.extraPaths": [
+        "/home/patty/leg_boot_ws/devel/lib/python3/dist-packages",
+        "/home/patty/nics_ws/devel/lib/python3/dist-packages",
+        "/home/patty/alan_rebuttal_ws/devel/lib/python3/dist-packages",
+        "/home/patty/ledvo_ws/devel/lib/python3/dist-packages",
+        "/home/patty/camera_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
     ]
 
 }
